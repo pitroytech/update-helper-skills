@@ -15,7 +15,7 @@ An original protocol created, refined, and battle-tested by **PitroyTech** throu
 
 Every AI coding agent eventually hits the same wall:
 
-- File is **5,000–30,000+ lines**. Reading it all blows the context window.
+- File has **thousands to tens of thousands of lines**. Reading it all blows the context window.
 - You patch line 800, then line 5,200 is now **line 5,203** — agent patches the wrong block.
 - The file has **non-English characters (Vietnamese, CJK, European, emoji, etc.)**. A `Set-Content` strips the BOM. Silent corruption, no warning.
 - A new agent joins mid-session. It has **zero context** about what was already done.
@@ -33,7 +33,7 @@ Agent using `grep_search` (IDE tool) — **12 failed searches in a row:**
 ![Agent without skill: 12 failed searches](images/before-12-searches.png?v=3)
 
 → Agent gives up: *"Hmm, file có vấn đề encoding. Thử cách khác"*  
-→ `grep_search` cannot handle 14,000+ line UTF-8 BOM files with non-English characters.  
+→ `grep_search` cannot handle massive UTF-8 BOM files with non-English characters.  
 → Agent guesses randomly, no system, burns tokens.
 
 ---
@@ -107,7 +107,7 @@ Pre-packaged `.skill` file for direct import into Claude Code, Cursor, or any ag
 This is where Update Helper really shines.
 
 ### Scenario 1: Agent Handoff
-**Agent A** starts patching a 15,000-line JS file, creates a session backup, maps the architecture. **Agent B** joins 30 minutes later with zero memory. Without a protocol, Agent B reads the entire file (context blown), patches wrong lines, overwrites Agent A's backup.
+**Agent A** starts patching a massive JS file, creates a session backup, maps the architecture. **Agent B** joins 30 minutes later with zero memory. Without a protocol, Agent B reads the entire file (context blown), patches wrong lines, overwrites Agent A's backup.
 
 **With Update Helper:** Agent B runs the 4-step onboarding checklist (Section 7):
 ```
@@ -164,8 +164,8 @@ Copy the content of `skills/update-helper/SKILL.md` directly into your system pr
 ## 🧪 Proven Track Record
 
 Built from real sessions patching:
-- **30,000+ line PowerShell scripts** with non-English UI strings (UTF-8 BOM required)
-- **15,000+ line JavaScript** single-file apps (subtitles, translation overlays)
+- **Massive PowerShell scripts** with non-English UI strings (UTF-8 BOM required)
+- **Massive JavaScript** single-file apps (subtitles, translation overlays)
 - **Complex Objective-C Logos tweaks** for iOS jailbreak development
 - **Multi-language codebases** (JS, PS1, Python, C/ObjC, Bash)
 

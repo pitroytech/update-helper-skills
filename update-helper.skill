@@ -3,7 +3,7 @@ name: update-helper
 version: "4.0"
 description: |
   Universal protocol for safely reading, understanding, and patching large source files
-  (1,000–30,000+ lines) in any language on Windows/PowerShell environments.
+  (thousands to tens of thousands of lines) in any language on Windows/PowerShell environments.
   Use whenever the user wants to: edit, patch, refactor, debug, or understand a large file —
   especially when the file is too big to read at once, when the user says "fix this",
   "add feature X", "why is Y broken", or when a previous patch needs to be verified or rolled back.
