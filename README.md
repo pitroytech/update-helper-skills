@@ -1,3 +1,8 @@
+<p align="right">
+  <b>🇺🇸 English</b> &nbsp;|&nbsp;
+  <a href="README.vi.md">🇻🇳 Tiếng Việt</a>
+</p>
+
 # 🛠️ Update Helper — Large File Patcher Protocol
 
 > **The definitive AI-agent skill for safely reading, understanding, and patching large source files — without burning context windows or corrupting encoding.**
@@ -17,6 +22,59 @@ Every AI coding agent eventually hits the same wall:
 - Two agents work in **parallel**. One overwrites the other's backup. Both lose rollback.
 
 **Update Helper solves all of these — with a single, self-contained protocol.**
+
+---
+
+## 📊 Real-World: Before vs. After
+
+### ❌ Without Update Helper
+Agent using `grep_search` (IDE tool) — **12 failed searches in a row:**
+
+![Agent without skill: 12 failed searches](images/s2-before.png)
+
+→ Agent gives up: *"Hmm, file có vấn đề encoding. Thử cách khác"*  
+→ `grep_search` cannot handle 14,000+ line UTF-8 BOM files with Vietnamese.  
+→ Agent guesses randomly, no system, burns tokens.
+
+---
+
+### ✅ With Update Helper
+Agent switches to `Select-String` (PowerShell native) following **§A4 Data Flow Tracing:**
+
+![Agent with skill: finds bug immediately and traces root cause](images/s1-after.png)
+
+Detailed trace from error → root cause:
+
+![Detailed Data Flow Tracing process](images/s3-trace.png)
+
+**In 3 targeted searches:**
+- Found `Reset-LocalAccountPassword` at line 6732 ✅
+- Traced caller at line 12273 ✅
+- Identified root cause: `$acc.Username` is empty → `ConvertMsa` crash ✅
+
+---
+
+### 📋 Side-by-Side Comparison
+
+| | Without skill | With `/update-helper` |
+|---|---|---|
+| Tool | `grep_search` (IDE) | `Select-String` (PowerShell native) |
+| Searches | 12+ FAILED | 3 targeted → bug found |
+| Method | Random guessing | Search → Read → Understand → Trace |
+| Result | "encoding issue" | Root cause + 3 bugs identified |
+| Encoding | Cannot handle UTF-8 BOM | BOM preserved correctly |
+
+---
+
+## 💰 Token Savings Estimate
+
+![Token savings estimate with Update Helper v4](images/token-savings.png)
+
+- **578 KB JS file**: Reading entire file = ~120k–180k tokens. With Update Helper, only anchor zones → ~15k–30k tokens.
+- **Standard/weak agents**: **70–90% token savings**
+- **Strong models** that already use range reading: **15–30% savings** — main benefit is eliminating encoding corruption, enforcing `.bak2` discipline, and never forgetting `node --check`
+
+
 
 ---
 
