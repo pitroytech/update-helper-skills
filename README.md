@@ -30,7 +30,7 @@ Every AI coding agent eventually hits the same wall:
 ### ❌ Without Update Helper
 Agent using `grep_search` (IDE tool) — **12 failed searches in a row:**
 
-![Agent without skill: 12 failed searches](images/before-12-searches.png)
+![Agent without skill: 12 failed searches](images/before-12-searches.png?v=2)
 
 → Agent gives up: *"Hmm, file có vấn đề encoding. Thử cách khác"*  
 → `grep_search` cannot handle 14,000+ line UTF-8 BOM files with Vietnamese.  
@@ -41,11 +41,11 @@ Agent using `grep_search` (IDE tool) — **12 failed searches in a row:**
 ### ✅ With Update Helper
 Agent switches to `Select-String` (PowerShell native) following **§A4 Data Flow Tracing:**
 
-![Agent with skill: finds bug immediately and traces root cause](images/after-trace-success.png)
+![Agent with skill: finds bug immediately and traces root cause](images/after-trace-success.png?v=2)
 
 Detailed trace from error → root cause:
 
-![Detailed Data Flow Tracing process](images/comparison-table.png)
+![Detailed Data Flow Tracing process](images/comparison-table.png?v=2)
 
 **In 3 targeted searches:**
 - Found `Reset-LocalAccountPassword` at line 6732 ✅
@@ -68,7 +68,7 @@ Detailed trace from error → root cause:
 
 ## 💰 Token Savings Estimate
 
-![Token savings estimate with Update Helper v4](images/token-savings.png)
+![Token savings estimate with Update Helper v4](images/token-savings.png?v=2)
 
 - **578 KB JS file**: Reading entire file = ~120k–180k tokens. With Update Helper, only anchor zones → ~15k–30k tokens.
 - **Standard/weak agents**: **70–90% token savings**
