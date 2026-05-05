@@ -17,7 +17,7 @@ Every AI coding agent eventually hits the same wall:
 
 - File is **5,000–30,000+ lines**. Reading it all blows the context window.
 - You patch line 800, then line 5,200 is now **line 5,203** — agent patches the wrong block.
-- The file has **Vietnamese / CJK / emoji**. A `Set-Content` strips the BOM. Silent corruption, no warning.
+- The file has **non-English characters (Vietnamese, CJK, European, emoji, etc.)**. A `Set-Content` strips the BOM. Silent corruption, no warning.
 - A new agent joins mid-session. It has **zero context** about what was already done.
 - Two agents work in **parallel**. One overwrites the other's backup. Both lose rollback.
 
@@ -33,7 +33,7 @@ Agent using `grep_search` (IDE tool) — **12 failed searches in a row:**
 ![Agent without skill: 12 failed searches](images/before-12-searches.png?v=3)
 
 → Agent gives up: *"Hmm, file có vấn đề encoding. Thử cách khác"*  
-→ `grep_search` cannot handle 14,000+ line UTF-8 BOM files with Vietnamese.  
+→ `grep_search` cannot handle 14,000+ line UTF-8 BOM files with non-English characters.  
 → Agent guesses randomly, no system, burns tokens.
 
 ---
@@ -86,7 +86,7 @@ A single `SKILL.md` that covers the complete lifecycle of a safe large-file edit
 |---|---|
 | **Hard Rules** | 11 non-negotiable laws that prevent data loss |
 | **Fast Workflow** | Exact 10-step execution order for every session |
-| **Encoding-Safe Write Pattern** | BOM-preserving `.NET ReadAllText/WriteAllText` for Vietnamese/CJK/emoji files |
+| **Encoding-Safe Write Pattern** | BOM-preserving `.NET ReadAllText/WriteAllText` for any non-English/UTF-8 files |
 | **Backup Protocol** | 2-tier: session backup (stable) + `.bak2` (disposable per-edit) |
 | **Code Comprehension** | Structural Scan → Data Flow Trace → Blast Radius Assessment |
 | **Anchor Search** | Unique-token search strategy — never trust full-block spec from user |
@@ -164,7 +164,7 @@ Copy the content of `skills/update-helper/SKILL.md` directly into your system pr
 ## 🧪 Proven Track Record
 
 Built from real sessions patching:
-- **30,000+ line PowerShell scripts** with Vietnamese UI strings (UTF-8 BOM required)
+- **30,000+ line PowerShell scripts** with non-English UI strings (UTF-8 BOM required)
 - **15,000+ line JavaScript** single-file apps (subtitles, translation overlays)
 - **Complex Objective-C Logos tweaks** for iOS jailbreak development
 - **Multi-language codebases** (JS, PS1, Python, C/ObjC, Bash)

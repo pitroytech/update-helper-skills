@@ -8,7 +8,7 @@ description: |
   especially when the file is too big to read at once, when the user says "fix this",
   "add feature X", "why is Y broken", or when a previous patch needs to be verified or rolled back.
   Covers: code comprehension, architecture mapping, data flow tracing, encoding-safe writes
-  (Vietnamese/CJK/BOM), 2-tier backup, anchor-based patching, cascade analysis, stale-patch
+  (non-English chars/BOM), 2-tier backup, anchor-based patching, cascade analysis, stale-patch
   detection, proactive bug hunt, multi-agent mid-session onboarding, and JS UI patterns.
   Self-contained — no external reference files needed.
   Original by PitroyTech. Updated v4.0.
@@ -56,7 +56,7 @@ Execute in this exact order:
 
 ## 2. Encoding-Safe Write Pattern
 
-Use for: any file with Vietnamese/CJK/emoji, any UTF-8 BOM file, any large external file, any file with known encoding risk.
+Use for: any file with non-English characters (Vietnamese/CJK/European/emoji), any UTF-8 BOM file, any large external file, any file with known encoding risk.
 
 ```powershell
 $path = "C:\path\file.ext"
@@ -66,7 +66,7 @@ $content = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
 $nl = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
 
 # Modify $content using exact ASCII anchors where possible.
-# Never rely on terminal-rendered Vietnamese when console may show mojibake.
+# Never rely on terminal-rendered output when console may show mojibake for non-English chars.
 
 $utf8 = [System.Text.UTF8Encoding]::new($hasBom)
 [System.IO.File]::WriteAllText($path, $content, $utf8)
@@ -231,7 +231,7 @@ Use `apply_patch` when:
 
 Use .NET scripted replacement (Section 2) when:
 - File has BOM/no-BOM that must be preserved
-- Terminal display may corrupt Vietnamese/emoji
+- Terminal display may corrupt non-English characters/emoji
 - Need ASCII anchors around non-ASCII strings
 
 For multiple patches in one file:
