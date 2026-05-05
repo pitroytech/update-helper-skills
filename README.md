@@ -1,37 +1,154 @@
-# Update-Helper Skills
+# 🛠️ Update Helper — Large File Patcher Protocol
 
-A collection of AI Agent skills and workflows for safely modifying massive source files without breaking context windows or destroying formatting. 
-Inspired by [andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills), but focused on hardcore file manipulation safety.
+> **The definitive AI-agent skill for safely reading, understanding, and patching large source files — without burning context windows or corrupting encoding.**
 
-## 📦 Skills Included
+An original protocol created, refined, and battle-tested by **PitroyTech** through thousands of real-world edits on large, complex codebases.
 
-### 1. `update-helper` (The Field Manual)
-**Universal Large File Patcher — Complete Field Manual v3.3**
-The complete, battle-tested survival manual for AI agents when patching large codebases (1,000–30,000+ lines). It covers:
-- The 3-Tier Backup Protocol.
-- Code Comprehension Layer (Intent Mapping, Data Flow Tracing).
-- Smart Patching Workflows and Multi-Patch Offset Strategies.
-- Strict Encoding Safety (BOM preservation for CJK/Vietnamese characters).
+---
 
-### 2. `update-helper-guidelines` (The Behavioral Rules)
-A concise set of Karpathy-style behavioral rules (in Vietnamese) that enforce the core philosophies of `update-helper`. Perfect for quick system prompt inclusion to ensure AI agents behave safely before touching any code.
-- **Không Tự Bịa Code (Never Assume Target Content)**
-- **Khảo Sát Kỹ Trước Khi Hành Động (Read Before You Patch)**
-- **Bảo Vệ Dữ Liệu Tuyệt Đối (Safety First: Backups & Encoding)**
-- **Vá Lỗi Phẫu Thuật, Sửa Từ Dưới Lên (Surgical, Bottom-Up Execution)**
+## ⚡ Why Does This Exist?
 
-## 🚀 Installation & Usage
+Every AI coding agent eventually hits the same wall:
 
-You can use these skills with supported AI Agent platforms (like Cline, Cursor, Antigravity, OpenClaw, etc.) by placing them in your `skills` or `.cursorrules` directory.
+- File is **5,000–30,000+ lines**. Reading it all blows the context window.
+- You patch line 800, then line 5,200 is now **line 5,203** — agent patches the wrong block.
+- The file has **Vietnamese / CJK / emoji**. A `Set-Content` strips the BOM. Silent corruption, no warning.
+- A new agent joins mid-session. It has **zero context** about what was already done.
+- Two agents work in **parallel**. One overwrites the other's backup. Both lose rollback.
 
-```bash
-# Clone this repository
-git clone https://github.com/pitroytech/update-helper-skills.git
+**Update Helper solves all of these — with a single, self-contained protocol.**
 
-# Copy the skills to your AI agent's skills directory
-cp -r update-helper-skills/skills/update-helper ~/.gemini/antigravity/skills/
-cp -r update-helper-skills/skills/update-helper-guidelines ~/.gemini/antigravity/skills/
+---
+
+## ✨ What's Inside
+
+### `skills/update-helper/` — The Core Protocol (v4.0)
+
+A single `SKILL.md` that covers the complete lifecycle of a safe large-file edit:
+
+| Section | What it handles |
+|---|---|
+| **Hard Rules** | 11 non-negotiable laws that prevent data loss |
+| **Fast Workflow** | Exact 10-step execution order for every session |
+| **Encoding-Safe Write Pattern** | BOM-preserving `.NET ReadAllText/WriteAllText` for Vietnamese/CJK/emoji files |
+| **Backup Protocol** | 2-tier: session backup (stable) + `.bak2` (disposable per-edit) |
+| **Code Comprehension** | Structural Scan → Data Flow Trace → Blast Radius Assessment |
+| **Anchor Search** | Unique-token search strategy — never trust full-block spec from user |
+| **Patch Strategy** | Bottom-to-top multi-patch, stale spec handling, silent merge prevention |
+| **Verification** | Syntax check table for 10 languages + post-patch invariant checks |
+| **Cascade Analysis** | Every change type mapped to what must be verified downstream |
+| **Multi-Agent Onboarding** | 4-step protocol for a new agent joining mid-session |
+| **Failure Recovery** | Step-by-step restore for syntax failures and encoding corruption |
+
+### `update-helper.skill` — Claude Code / Cursor / Cline Format
+
+Pre-packaged `.skill` file for direct import into Claude Code, Cursor, or any agent platform that supports skill files. No manual copy-paste needed.
+
+---
+
+## 🤝 Multi-Agent & Multi-Account Use Cases
+
+This is where Update Helper really shines.
+
+### Scenario 1: Agent Handoff
+**Agent A** starts patching a 15,000-line JS file, creates a session backup, maps the architecture. **Agent B** joins 30 minutes later with zero memory. Without a protocol, Agent B reads the entire file (context blown), patches wrong lines, overwrites Agent A's backup.
+
+**With Update Helper:** Agent B runs the 4-step onboarding checklist (Section 7):
+```
+1. Verify session backup exists → found ✅
+2. Read ARCHITECTURE_MAP from Agent A → loaded ✅
+3. Confirm tools available → node, python ✅
+4. Check feature_map / KI files → read ✅
+→ "Ready. Session backup confirmed. What's the current task?"
+```
+No context waste. No broken backups. No duplicate work.
+
+### Scenario 2: Parallel Agents on the Same Codebase
+Two agents fix different bugs in the same large file simultaneously. Without coordination, both create `.bak` files with the same name — one silently overwrites the other.
+
+**With Update Helper:** Session backups are timestamped and topic-named:
+```
+file.js.bak.codex-session-20260505-fix-auth
+file.js.bak.codex-session-20260505-fix-ui
+```
+Both agents can roll back independently. Merging is safe.
+
+### Scenario 3: AI Agent + Human Developer
+Human makes a fix directly in the file while agent is mid-session. Agent's `TargetContent` is now stale. Without the protocol, agent patches wrong block, merges silently, produces syntactically valid but logically broken code.
+
+**With Update Helper:** The stale-spec detection rule triggers:
+```
+⚠️ Spec says: [X]
+   Current code is: [Y]
+   Difference: [explain]
+→ "Apply spec as-is? / Adapt to current code? / Skip this patch?"
+No confirmation = no patch.
 ```
 
-## 📜 License
-MIT License. Created by PitroyTech.
+---
+
+## 📦 Installation
+
+### For Antigravity / OpenClaw (Skills folder)
+```bash
+git clone https://github.com/pitroytech/update-helper-skills.git
+# Copy to your agent's skills directory:
+xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
+```
+
+### For Claude Code / Cursor / Cline (`.skill` file)
+1. Download `update-helper.skill` from this repo.
+2. Import it into your agent's skill manager.
+
+### Manual (Any agent with system prompt)
+Copy the content of `skills/update-helper/SKILL.md` directly into your system prompt or AGENTS.md.
+
+---
+
+## 🧪 Proven Track Record
+
+Built from real sessions patching:
+- **30,000+ line PowerShell scripts** with Vietnamese UI strings (UTF-8 BOM required)
+- **15,000+ line JavaScript** single-file apps (subtitles, translation overlays)
+- **Complex Objective-C Logos tweaks** for iOS jailbreak development
+- **Multi-language codebases** (JS, PS1, Python, C/ObjC, Bash)
+
+Every rule in this protocol was added because a session **without it** went wrong — not as a theoretical precaution.
+
+---
+
+## 📋 Quick Reference
+
+```
+Hard Rules     → Section 0   (read this first, always)
+Fast Workflow  → Section 1   (10-step execution order)
+Encoding       → Section 2   (BOM-safe write pattern)
+Backups        → Section 3   (2-tier protocol)
+Architecture   → Section 4   (Scan → Trace → Blast Radius)
+Patching       → Section 5   (stale spec, bottom-to-top)
+Verification   → Section 6   (syntax + invariants + cascade)
+Multi-Agent    → Section 7   (onboarding protocol)
+JS UI Files    → Section 8   (UI-specific patterns)
+Recovery       → Section 9   (restore workflow)
+Final Report   → Section 10  (what to include)
+```
+
+---
+
+## 🔖 Version History
+
+| Version | Changes |
+|---|---|
+| v4.0 | Refactored to self-contained single file. Upgraded encoding pattern. Hardened multi-agent onboarding. Added proactive bug hunt and cascade analysis tables. |
+| v3.4 | Added stale-spec detection protocol. Improved BOM write pattern. |
+| v3.3 | Added Data Flow Tracing, Architecture Summary, JS UI patterns. |
+| v3.x | Initial public releases. |
+
+---
+
+## 📄 License
+
+MIT License.
+
+**Original concept, design, and all content © PitroyTech.**
+Created independently and refined through thousands of real-world large-file edit sessions.
