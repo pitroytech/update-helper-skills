@@ -3,9 +3,9 @@
   <a href="README.vi.md">🇻🇳 Tiếng Việt</a>
 </p>
 
-# 🛠️ Update Helper — Large File Patcher Protocol
+# 🛠️ Update Helper by PitroyTech — Large File Patcher Protocol
 
-> **The definitive AI-agent skill for safely reading, understanding, and patching large source files — without burning context windows or corrupting encoding.**
+> **The definitive AI-agent skill (`/update-helper`) for safely reading, understanding, and patching large source files — without burning context windows or corrupting encoding.**
 
 An original protocol created, refined, and battle-tested by **PitroyTech** through thousands of real-world edits on large, complex codebases.
 
@@ -158,6 +158,10 @@ xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\anti
 
 ### Manual (Any agent with system prompt)
 Copy the content of `skills/update-helper/SKILL.md` directly into your system prompt or AGENTS.md.
+
+### 🚀 How to Invoke
+Once installed, simply tell your agent:
+> `Use /update-helper to fix the bug in this file` or just type `/update-helper` when asking for a large file edit.
 
 ---
 

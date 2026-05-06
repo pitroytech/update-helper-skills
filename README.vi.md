@@ -3,9 +3,9 @@
   <b>🇻🇳 Tiếng Việt</b>
 </p>
 
-# 🛠️ Update Helper — Giao Thức Vá File Lớn Cho AI Agent
+# 🛠️ Update Helper by PitroyTech — Giao Thức Vá File Lớn Cho AI Agent
 
-> **Skill AI agent dứt khoát nhất để đọc, hiểu và vá các file nguồn lớn — không đốt cháy context window, không làm hỏng encoding.**
+> **Skill AI agent dứt khoát nhất (`/update-helper`) để đọc, hiểu và vá các file nguồn lớn — không đốt cháy context window, không làm hỏng encoding.**
 
 Một giao thức nguyên bản được tạo ra, tinh chỉnh và thực chiến bởi **PitroyTech** qua hàng nghìn lần chỉnh sửa thực tế trên các codebase lớn, phức tạp.
 
@@ -149,6 +149,10 @@ xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\anti
 
 ### Thủ công (Bất kỳ agent nào có system prompt)
 Copy nội dung `skills/update-helper/SKILL.md` trực tiếp vào system prompt hoặc AGENTS.md.
+
+### 🚀 Cách gọi Skill (Invoke)
+Sau khi cài đặt, bạn chỉ cần ra lệnh cho AI trong khung chat:
+> `Dùng /update-helper để sửa file này` hoặc đơn giản gõ `/update-helper` kèm theo yêu cầu sửa file lớn của bạn.
 
 ---
 
