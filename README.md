@@ -82,23 +82,26 @@ The key difference: the agent doesn't try to "see everything" upfront. It finds 
 
 ### Antigravity / OpenClaw (skills folder)
 
+Clone the repo:
+
 ```bash
 git clone https://github.com/pitroytech/update-helper-skills.git
-# Copy to your agent's skills directory:
+```
+
+Copy to your agent's skills directory:
+
+```bash
 xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
 ```
 
 ### Claude Code / Cursor / Cline (`.skill` file)
 
-```
-Download update-helper.skill → import into your skill manager
-```
+1. Download [`update-helper.skill`](update-helper.skill) from this repo.
+2. Import into your agent's skill manager.
 
 ### Manual (any agent)
 
-```
-Copy contents of skills/update-helper/SKILL.md into your system prompt or AGENTS.md
-```
+Copy the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) into your system prompt or `AGENTS.md`.
 
 Once loaded, the agent automatically activates the protocol on triggers: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
 

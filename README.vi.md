@@ -82,23 +82,26 @@ Kết quả: đúng file, đúng luồng, build pass, invariant sạch, còn đ�
 
 ### Antigravity / OpenClaw (thư mục skills)
 
+Clone repo:
+
 ```bash
 git clone https://github.com/pitroytech/update-helper-skills.git
-# Copy vào thư mục skills của agent:
+```
+
+Copy vào thư mục skills của agent:
+
+```bash
 xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
 ```
 
 ### Claude Code / Cursor / Cline (file `.skill`)
 
-```
-Download update-helper.skill → import vào skill manager
-```
+1. Download [`update-helper.skill`](update-helper.skill) từ repo này.
+2. Import vào skill manager của agent.
 
 ### Thủ công (bất kỳ agent nào)
 
-```
-Copy nội dung skills/update-helper/SKILL.md vào system prompt hoặc AGENTS.md của project
-```
+Copy nội dung [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) vào system prompt hoặc `AGENTS.md` của project.
 
 Khi skill được nạp đúng cách, agent sẽ tự kích hoạt protocol khi gặp trigger: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
 
