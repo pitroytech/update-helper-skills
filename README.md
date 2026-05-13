@@ -3,195 +3,268 @@
   <a href="README.vi.md">🇻🇳 Tiếng Việt</a>
 </p>
 
-# 🛠️ Update Helper by PitroyTech — Large File Patcher Protocol
+# 🛠️ Update Helper v5 — by PitroyTech
 
-> **The definitive AI-agent skill (`/update-helper`) for safely reading, understanding, and patching large source files — without burning context windows or corrupting encoding.**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-5.0-blue.svg)](SKILL.md)
 
-An original protocol created, refined, and battle-tested by **PitroyTech** through thousands of real-world edits on large, complex codebases.
+> **The safe and efficient way for AI agents to update existing code.**
+> No blind patches. No broken builds. No context window burnout.
 
----
-
-## ⚡ Why Does This Exist?
-
-Every AI coding agent eventually hits the same wall:
-
-- File has **thousands to tens of thousands of lines**. Reading it all blows the context window.
-- You patch line 800, then line 5,200 is now **line 5,203** — agent patches the wrong block.
-- The file has **non-English characters (Vietnamese, CJK, European, emoji, etc.)**. A `Set-Content` strips the BOM. Silent corruption, no warning.
-- A new agent joins mid-session. It has **zero context** about what was already done.
-- Two agents work in **parallel**. One overwrites the other's backup. Both lose rollback.
-
-**Update Helper solves all of these — with a single, self-contained protocol.**
+**Search first. Read less. Patch narrow. Verify hard. Rollback clean.**
 
 ---
 
-## 📊 Real-World: Before vs. After
+## 🤔 The Problem
 
-### ❌ Without Update Helper
-Agent using `grep_search` (IDE tool) — **12 failed searches in a row:**
+AI agents write new code fast. But finding and fixing existing code is a different story.
 
-![Agent without skill: 12 failed searches](images/before-12-searches.png?v=3)
+**Without a protocol, agents easily:**
 
-→ Agent gives up: *"Hmm, file có vấn đề encoding. Thử cách khác"*  
-→ `grep_search` cannot handle massive UTF-8 BOM files with non-English characters.  
-→ Agent guesses randomly, no system, burns tokens.
+* ❌ Read entire large codebases (15,000–30,000 lines) to find one function → context window burned, no patch even attempted
+* ❌ Delete a UI button but forget the event handler still listening behind it → app runs but silently broken
+* ❌ Patch the build output instead of the source file → tests pass, next build wipes the fix
+* ❌ API returns valid data, but agent keeps swapping models and keys → hours wasted chasing the wrong layer
+* ❌ Write file with wrong encoding command → BOM lost → Vietnamese/CJK/emoji corrupted silently
+* ❌ Apply user's description to code that was refactored long ago → patch breaks live logic
 
----
+**With Update Helper:**
 
-### ✅ With Update Helper
-Agent switches to `Select-String` (PowerShell native) following **§A4 Data Flow Tracing:**
-
-![Agent with skill: finds bug immediately and traces root cause](images/after-trace-success.png?v=3)
-
-Detailed trace from error → root cause:
-
-![Detailed Data Flow Tracing process](images/comparison-table.png?v=3)
-
-**In 3 targeted searches:**
-- Found `Reset-LocalAccountPassword` at line 6732 ✅
-- Traced caller at line 12273 ✅
-- Identified root cause: `$acc.Username` is empty → `ConvertMsa` crash ✅
+* ✅ Find anchor → read only 40–160 lines around it, leave the rest untouched
+* ✅ Map render → handler → state → config → dist before deleting anything
+* ✅ Distinguish SOURCE vs GENERATED → patch source only, rebuild artifact after
+* ✅ Separate 3 layers: request sent / response received / post-processing → pinpoint the real failure
+* ✅ Check BOM/encoding before writing → write with correct encoding → verify after
+* ✅ Compare user's description against actual code → ask before applying if they differ
 
 ---
 
-### 📋 Side-by-Side Comparison
+## 🔄 How Does It Change Agent Behavior?
 
-| | Without skill | With `/update-helper` |
+```
+User: "fix this" / "remove old UI" / "last patch broke it"
+        ↓
+Update Helper
+        ↓
+[Lite]  Find anchor → read range → identify owner →
+        state intended edit → backup if needed → patch →
+        syntax check → invariant search → report
+
+[Full]  + classify source-of-truth → trace data flow →
+        assess blast radius → write with correct encoding →
+        UI symmetry checklist → cleanup backups
+        ↓
+Result: right file, right flow, build passes, invariants clean, rollback path preserved
+```
+
+The key difference: the agent doesn't try to "see everything" upfront. It finds a good anchor, reads only the relevant range, and expands only when the blast radius is genuinely large.
+
+**Lite** — for small, clear tasks: 1 file, no encoding risk, no generated/source confusion.
+
+**Full Protocol** — for large files, multi-module changes, encoding risk, refactors, potentially stale specs, or repos touched by other agents/humans.
+
+---
+
+## 🧭 What Changes for the Agent?
+
+| Case | Agent without skill | With Update Helper |
 |---|---|---|
-| Tool | `grep_search` (IDE) | `Select-String` (PowerShell native) |
-| Searches | 12+ FAILED | 3 targeted → bug found |
-| Method | Random guessing | Search → Read → Understand → Trace |
-| Result | "encoding issue" | Root cause + 3 bugs identified |
-| Encoding | Cannot handle UTF-8 BOM | BOM preserved correctly |
+| UI bug | Fix what's visible | Trace render → handler → state → config before patching |
+| Provider/API bug | Swap model, swap key | Separate request sent / response received / post-processing |
+| Generated file | Edit the running file | Find source-of-truth, patch source, rebuild output |
+| Large file | Read too much | Search anchor, read bounded range (small zone around target) |
+| Vietnamese/CJK file | Replace with convenient tool | Check encoding/BOM, use stable anchors, preserve encoding |
+| Broken patch | Stack another workaround | Restore `.bak2`, re-read range, patch smaller |
 
 ---
 
-## 💰 Token Savings Estimate
+## ⚡ Installation
 
-![Token savings estimate with Update Helper v4](images/token-savings.png?v=3)
+### Antigravity / OpenClaw (skills folder)
 
-- **578 KB JS file**: Reading entire file = ~120k–180k tokens. With Update Helper, only anchor zones → ~15k–30k tokens.
-- **Standard/weak agents**: **70–90% token savings**
-- **Strong models** that already use range reading: **15–30% savings** — main benefit is eliminating encoding corruption, enforcing `.bak2` discipline, and never forgetting `node --check`
-
----
-
-## ✨ What's Inside
-
-### `skills/update-helper/` — The Core Protocol (v4.0)
-
-A single `SKILL.md` that covers the complete lifecycle of a safe large-file edit:
-
-| Section | What it handles |
-|---|---|
-| **Hard Rules** | 11 non-negotiable laws that prevent data loss |
-| **Fast Workflow** | Exact 10-step execution order for every session |
-| **Encoding-Safe Write Pattern** | BOM-preserving `.NET ReadAllText/WriteAllText` for any non-English/UTF-8 files |
-| **Backup Protocol** | 2-tier: session backup (stable) + `.bak2` (disposable per-edit) |
-| **Code Comprehension** | Structural Scan → Data Flow Trace → Blast Radius Assessment |
-| **Anchor Search** | Unique-token search strategy — never trust full-block spec from user |
-| **Patch Strategy** | Bottom-to-top multi-patch, stale spec handling, silent merge prevention |
-| **Verification** | Syntax check table for 10 languages + post-patch invariant checks |
-| **Cascade Analysis** | Every change type mapped to what must be verified downstream |
-| **Multi-Agent Onboarding** | 4-step protocol for a new agent joining mid-session |
-| **Failure Recovery** | Step-by-step restore for syntax failures and encoding corruption |
-
-### `update-helper.skill` — Claude Code / Cursor / Cline Format
-
-Pre-packaged `.skill` file for direct import into Claude Code, Cursor, or any agent platform that supports skill files. No manual copy-paste needed.
-
----
-
-## 🤝 Multi-Agent & Multi-Account Use Cases
-
-This is where Update Helper really shines.
-
-### Scenario 1: Agent Handoff
-**Agent A** starts patching a massive JS file, creates a session backup, maps the architecture. **Agent B** joins 30 minutes later with zero memory. Without a protocol, Agent B reads the entire file (context blown), patches wrong lines, overwrites Agent A's backup.
-
-**With Update Helper:** Agent B runs the 4-step onboarding checklist (Section 7):
-```
-1. Verify session backup exists → found ✅
-2. Read ARCHITECTURE_MAP from Agent A → loaded ✅
-3. Confirm tools available → node, python ✅
-4. Check feature_map / KI files → read ✅
-→ "Ready. Session backup confirmed. What's the current task?"
-```
-No context waste. No broken backups. No duplicate work.
-
-### Scenario 2: Parallel Agents on the Same Codebase
-Two agents fix different bugs in the same large file simultaneously. Without coordination, both create `.bak` files with the same name — one silently overwrites the other.
-
-**With Update Helper:** Session backups are timestamped and topic-named:
-```
-file.js.bak.codex-session-20260505-fix-auth
-file.js.bak.codex-session-20260505-fix-ui
-```
-Both agents can roll back independently. Merging is safe.
-
-### Scenario 3: AI Agent + Human Developer
-Human makes a fix directly in the file while agent is mid-session. Agent's `TargetContent` is now stale. Without the protocol, agent patches wrong block, merges silently, produces syntactically valid but logically broken code.
-
-**With Update Helper:** The stale-spec detection rule triggers:
-```
-⚠️ Spec says: [X]
-   Current code is: [Y]
-   Difference: [explain]
-→ "Apply spec as-is? / Adapt to current code? / Skip this patch?"
-No confirmation = no patch.
-```
-
----
-
-## 📦 Installation
-
-### For Antigravity / OpenClaw (Skills folder)
 ```bash
 git clone https://github.com/pitroytech/update-helper-skills.git
 # Copy to your agent's skills directory:
 xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
 ```
 
-### For Claude Code / Cursor / Cline (`.skill` file)
-1. Download `update-helper.skill` from this repo.
-2. Import it into your agent's skill manager.
+### Claude Code / Cursor / Cline (`.skill` file)
 
-### Manual (Any agent with system prompt)
-Copy the content of `skills/update-helper/SKILL.md` directly into your system prompt or AGENTS.md.
+```
+Download update-helper.skill → import into your skill manager
+```
 
-### 🚀 How to Invoke
-Once installed, simply tell your agent:
-> `Use /update-helper to fix the bug in this file` or just type `/update-helper` when asking for a large file edit.
+### Manual (any agent)
+
+```
+Copy contents of skills/update-helper/SKILL.md into your system prompt or AGENTS.md
+```
+
+Once loaded, the agent automatically activates the protocol on triggers: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
 
 ---
 
-## 🧪 Proven Track Record
+## 📊 Comparison
 
-Built from real sessions patching:
-- **Massive PowerShell scripts** with non-English UI strings (UTF-8 BOM required)
-- **Massive JavaScript** single-file apps (subtitles, translation overlays)
-- **Complex Objective-C Logos tweaks** for iOS jailbreak development
-- **Multi-language codebases** (JS, PS1, Python, C/ObjC, Bash)
-
-Every rule in this protocol was added because a session **without it** went wrong — not as a theoretical precaution.
+| Without Update Helper | With Update Helper |
+|---|---|
+| Read entire large file to find 1 fix | Find anchor → read bounded range |
+| Delete UI, but event handler code remains | Full checklist: render + CSS + binding + config + dist |
+| Edit output file because it's the running one | Classify source-of-truth → patch source → rebuild |
+| See error → swap model, swap key | Separate request/response/processing → find real failure |
+| Encoding broken, no idea why | Detect BOM before writing, verify after writing |
+| New agent → re-read everything from scratch | Read existing map/backup/KI → continue immediately |
+| Apply stale spec to refactored code | Compare spec vs actual, ask before merge |
+| Backups sometimes forgotten, sometimes cluttering | `.bak2` per write + session backup + clear cleanup rules |
 
 ---
 
-## 📋 Quick Reference
+## 🎯 Real-World Scenarios
+
+### Scenario 1: Removing an old UI feature
+
+> Task: remove Batch tuning controls from the API settings page.
+
+Agent without skill only deletes the visible HTML. Result: inputs disappear on screen, but backend code still reads old values, causing save errors.
+
+Agent with Update Helper runs the full checklist:
 
 ```
-Hard Rules     → Section 0   (read this first, always)
-Fast Workflow  → Section 1   (10-step execution order)
-Encoding       → Section 2   (BOM-safe write pattern)
-Backups        → Section 3   (2-tier protocol)
-Architecture   → Section 4   (Scan → Trace → Blast Radius)
-Patching       → Section 5   (stale spec, bottom-to-top)
-Verification   → Section 6   (syntax + invariants + cascade)
-Multi-Agent    → Section 7   (onboarding protocol)
-JS UI Files    → Section 8   (UI-specific patterns)
-Recovery       → Section 9   (restore workflow)
-Final Report   → Section 10  (what to include)
+Search: batch-gemini, batch-zhipu, api-advanced
+Read  : render block, CSS, Gemini handler, Zhipu handler, generic config save
+Patch : remove visible controls + default buttons + save reads + null-crash handlers
+Verify: npm run verify
+Check : rg "batch-gemini|batch-zhipu|api-advanced" src dist → 0 results
 ```
+
+### Scenario 2: Patching the wrong file (output vs source)
+
+> Task: changed settings but userscript doesn't reflect the change.
+
+Agent without skill finds the running file and edits it directly. Tests pass. Next build — fix gone.
+
+Agent with Update Helper finds the build script first, classifies files:
+
+```
+src/module.js          → SOURCE — this is the file to patch
+dist/app.user.js       → GENERATED — build output, don't edit directly
+src/app.user.js        → REFERENCE — old monolith, leave untouched
+
+→ Patch source → run npm run build → verify dist
+```
+
+### Scenario 3: Dropdown loses models after testing a provider
+
+> Task: tested Groq then ran RACE with Gemini, dropdown now only shows Gemini models.
+
+Agent without skill jumps to fix dropdown labels. No effect because labels aren't the cause.
+
+Agent with Update Helper traces the data flow:
+
+```
+RACE → providerModelPool[provider] → sync flat modelPool → dropdown → scheduler
+
+→ Found: RACE overwrites entire modelPool instead of updating only that provider
+→ Correct fix: RACE updates providerModelPool[provider], dropdown hydrates from aggregate store
+```
+
+### Scenario 4: API returns valid data but agent still reports failure
+
+> Task: logs show valid response, but scheduler still reports failed.
+
+Agent without skill keeps swapping models, testing keys, switching providers. Doesn't solve it.
+
+Agent with Update Helper separates 3 layers:
+
+```
+Request sent?         → Yes ✅
+Response received?    → Yes, valid JSON ✅
+Post-processing?      → Crash at apply translation step ❌
+
+→ Root cause: apply function was deleted in a previous refactor, call site not updated
+```
+
+---
+
+## 📸 Real Results
+
+### ❌ Before — agent without skill (12 consecutive failed searches)
+
+<img src="images/before-12-searches.png" width="33%" alt="Agent without skill: 12 consecutive failed searches">
+
+Agent using `grep_search` can't handle a 14,000-line UTF-8 BOM file. Conclusion: *"file has encoding issues, let's try something else"* → random guessing, token waste.
+
+### ✅ After — agent with Update Helper (3 searches, root cause found)
+
+<img src="images/after-trace-success.png" width="33%" alt="Agent with skill: finds bug immediately">
+
+Detailed Data Flow Tracing process:
+
+<img src="images/comparison-table.png" width="33%" alt="Detailed Data Flow Tracing process">
+
+```
+Find "Reset-LocalAccountPassword"     → line 6732  ✅
+Trace caller                          → line 12273 ✅
+Root cause: $acc.Username is empty → ConvertMsa crash ✅
+```
+
+### 📋 Quick Comparison
+
+| | Without skill | With Update Helper |
+|---|---|---|
+| Tool | `grep_search` (IDE) | `Select-String` (PowerShell native) |
+| Searches | 12+ FAILED | 3 targeted → bug found |
+| Method | Random guessing | Search → Read → Understand → Trace |
+| Result | "encoding issue" | Root cause + 3 bugs identified |
+| Encoding | Can't handle UTF-8 BOM | BOM preserved correctly |
+
+---
+
+## 💰 Real Token Savings
+
+<img src="images/token-savings.png" width="33%" alt="Token savings estimate with Update Helper v5">
+
+| Task type | Without protocol | With Update Helper |
+|---|---|---|
+| JS file 500KB+ | Easily 100k–180k tokens | Anchor + bounded range → ~15k–30k tokens |
+| UI removal | 2–4 rounds (missed handlers) | 1 round with full checklist |
+| Source/dist confusion | Patch wrong file, test pass, build loses fix | Classify first → patch right file |
+| Encoding corruption | May lose entire session to recover | Detect first, clear restore path |
+| Multi-agent handoff | Next agent re-reads from scratch | Continue from existing map/backup |
+
+Strong agents still benefit — not because they can't code, but because the protocol prevents small mistakes that cost big.
+
+---
+
+## ✅ Battle-Tested On
+
+* Userscripts 15,000+ lines: provider routing, scheduler, model pool, floating settings UI
+* Translation tools using Gemini, Groq, OpenRouter, SambaNova
+* PowerShell/JS files with Vietnamese, CJK, emoji — UTF-8 BOM and no-BOM
+* Repos with `src/`, `dist/`, generated userscripts, stale monolith references
+* Multi-agent sessions: one agent maps, one patches, one recovers
+
+Every rule in this skill exists because a session without it went wrong.
+
+---
+
+## 🧩 What's Inside `SKILL.md`?
+
+This README is the introduction for humans. `SKILL.md` is what the agent reads at work.
+
+| Feature | Description |
+|---|---|
+| **Tool Cheat Sheet** | Quick-reference command table, dual-platform: Linux/Claude Code and Windows/PowerShell |
+| **Lite Workflow** | 9 steps for clear tasks, with command examples for each step |
+| **Full Protocol** | For large files, multi-module, encoding risk, refactors, or broken previous patches |
+| **Source-of-Truth Detection** | Classify source, generated output, and stale references |
+| **Pre-Submit Checklist** | 11 mandatory checks before claiming a patch is done |
+| **UI Removal Checklist** | Render, CSS, handler, config, status, consumers, dist |
+| **Refactor & Port Protocol** | Leaf → caller → parent → entry point; 5-step port workflow |
+| **Backup Cleanup** | Separate protocols for git workspaces and non-git workspaces |
+| **Failure Recovery** | Restore `.bak2`, re-read range, patch smaller |
+| **Multi-Agent Handoff** | Read map/backup/KI before continuing, never overwrite backups |
+| **Final Report** | Changed files, behavior, verification, backup state, remaining risk |
 
 ---
 
@@ -199,16 +272,16 @@ Final Report   → Section 10  (what to include)
 
 | Version | Changes |
 |---|---|
-| v4.0 | Refactored to self-contained single file. Upgraded encoding pattern. Hardened multi-agent onboarding. Added proactive bug hunt and cascade analysis tables. |
-| v3.4 | Added stale-spec detection protocol. Improved BOM write pattern. |
-| v3.3 | Added Data Flow Tracing, Architecture Summary, JS UI patterns. |
+| **v5.0** | Lite/Full split. Source-of-truth detection. Tool cheat sheet + str_replace diagnostics. Pre-submit checklist. UI removal checklist. Refactor/port protocol. Backup cleanup for git and non-git. Feature_map/KI check in multi-agent. Dual-platform command examples throughout. |
+| v4.0 | Self-contained. Encoding-safe write .NET. Multi-agent onboarding. Cascade analysis. Proactive bug hunt. |
+| v3.4 | Stale-spec detection. Improved BOM write pattern. |
+| v3.3 | Data-flow tracing. Architecture summary. JS UI patterns. |
 | v3.x | Initial public releases. |
 
 ---
 
 ## 📄 License
 
-MIT License.
+MIT License. **Original concept, design, and all content © PitroyTech.**
 
-**Original concept, design, and all content © PitroyTech.**
-Created independently and refined through thousands of real-world large-file edit sessions.
+Built from real sessions — not from theory about how agents should work.

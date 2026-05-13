@@ -1,62 +1,560 @@
 ---
 name: update-helper
-version: "4.0"
+version: "5.0"
 description: |
-  Universal protocol for safely reading, understanding, and patching large source files
-  (thousands to tens of thousands of lines) in any language on Windows/PowerShell environments.
-  Use whenever the user wants to: edit, patch, refactor, debug, or understand a large file —
-  especially when the file is too big to read at once, when the user says "fix this",
-  "add feature X", "why is Y broken", or when a previous patch needs to be verified or rolled back.
-  Covers: code comprehension, architecture mapping, data flow tracing, encoding-safe writes
-  (non-English chars/BOM), 2-tier backup, anchor-based patching, cascade analysis, stale-patch
-  detection, proactive bug hunt, multi-agent mid-session onboarding, and JS UI patterns.
-  Self-contained — no external reference files needed.
-  Original by PitroyTech. Updated v4.0.
+  Safe, high-efficiency code update protocol for AI agents. Use for editing,
+  patching, debugging, refactoring, porting, or recovering code changes in real
+  projects, especially when files are large, generated/source files may differ,
+  UI render and handlers must stay in sync, non-English/BOM text is present,
+  multiple agents/humans touched the repo, or a previous update broke behavior.
+  Triggers: "fix this", "add feature", "why is this broken", "remove old UI",
+  "refactor", "port this", "continue previous agent", "last patch broke it".
+  Original by PitroyTech. v5.0.
 ---
 
-# update-helper v4.0
+# update-helper v5.0
 
-Purpose: execute large-file edits with minimum context burn, low corruption risk, and repeatable verification. Self-contained — never needs external files loaded.
+Purpose: update existing code without code blindness. Search first, read bounded ranges, understand enough flow, patch narrowly, verify with syntax/tests and invariants, and keep a clean recovery path.
 
-Respond in the user's language. Keep code identifiers and terminal commands in English.
+Respond in the user's language. Keep code identifiers and commands in English. Default is to execute, not explain the protocol, unless the user asks for a plan or review.
+
+---
+
+## Tool Cheat Sheet
+
+| Need | Linux / Claude Code | Windows / PowerShell |
+|---|---|---|
+| Find line by keyword | `rg -n "token" file` or `grep -n` | `rg -n` or `Select-String` |
+| Read bounded range | `nl -ba file \| sed -n 'N,Mp'` | `$lines[N..M]` via ReadAllLines |
+| Replace unique block | `str_replace` (Claude) / patch tool | `apply_patch` / .NET Replace |
+| Replace all occurrences | `sed -i 's/old/new/g' file` for simple ASCII only | `-replace` in .NET content string after encoding check |
+| Syntax check JS | `node --check file.js` | `node --check file.js` |
+| Backup before write | `cp file file.bak2` | `Copy-Item -LiteralPath` |
+| Detect encoding | `file -bi file; xxd -l 3 file` | Read first 3 bytes via ReadAllBytes |
+| Search in src+dist | `rg -n "token" src dist` | `rg -n "token" src dist` |
+| Count brace balance | `grep -o '{' f \| wc -l` | `($c.ToCharArray() \| ? {$_ -eq '{'}).Count` |
+| Rebuild artifact | `npm run build` / `npm run verify` | `cmd /c npm run build` |
+
+Do not use `sed -i` or blind global replace for Vietnamese/CJK/emoji/BOM-sensitive files. For those, detect encoding first and use explicit encoding-preserving writes.
+
+**str_replace / patch failure quick fix:**
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| "string not found" | Whitespace / indent mismatch | Re-read exact range, copy verbatim |
+| "string not found" | Line numbers shifted after earlier patch | Re-run search to get new coordinates |
+| "string not found" | Included line-number prefix from view | Strip the `N:` or `    N\t` prefix — display only |
+| "appears more than once" | Pattern too short | Add 2–3 surrounding lines to make unique |
+| "appears more than once" | Want all simple ASCII occurrences | Use a mechanical global replace instead |
+
+---
+
+## Quick Decision
+
+Use **Lite Workflow** only when all are true:
+
+- Small local change: 1 file, 1-3 functions/blocks.
+- Target is obvious and current code matches the request.
+- No generated/source ambiguity.
+- No non-English/BOM/emoji encoding risk.
+- No previous failed patch in this session.
+- Verification command is clear.
+
+Read and follow the **Full Protocol** when any are true:
+
+- File is 1,000+ lines or unfamiliar.
+- Task touches multiple files/modules.
+- User reports runtime/build error.
+- Previous patch broke something.
+- File contains Vietnamese/CJK/emoji/BOM-sensitive text.
+- Refactor, port, migration, or legacy cleanup.
+- User spec may be stale.
+- Another agent/human changed files.
+- You cannot explain data flow before editing.
+
+---
+
+## Lite Workflow
+
+Skip nothing.
+
+1. Search anchors with `rg`, `grep -n`, or `Select-String`.
+2. Read bounded range around anchors, usually 40-160 lines.
+3. Identify owner function/module and direct callers.
+4. Say the intended edit in one sentence before writing.
+5. Backup if risk is non-trivial: create `.bak2`.
+6. Patch narrowly.
+7. Run syntax/build/test check.
+8. Re-read edited range or search changed anchors.
+9. Report changed files, verification, backup state, remaining risk.
+
+Lite hard rules:
+
+- Do not read whole large files.
+- Do not trust user-quoted code until current code is verified.
+- Do not report done without verification.
+- If verification fails, stop normal patching and enter Failure Recovery.
+
+### Lite Examples By Step
+
+These examples are intentionally concrete. Use the same pattern on Windows/PowerShell or Linux/Bash/Claude Code. Prefer `rg`; if unavailable, use `grep -n` or `Select-String`.
+
+#### 1. Search anchors
+
+Use exact symbols from the bug, not broad words.
+
+Windows:
+
+```powershell
+rg -n "providerModelPool|modelPool|RaceResults|buildPriorityZoneOptions|renderModelPoolUI" src
+rg -n "updateLastActiveTimestamp|Structured failed|translateStructured|apply.*translation" src dist
+rg -n "batch-gemini|batch-zhipu|api-advanced|geminiBatchInput|zhipuBatchInput" src dist
+```
+
+Linux:
+
+```bash
+rg -n "providerModelPool|modelPool|RaceResults|buildPriorityZoneOptions|renderModelPoolUI" src
+rg -n "updateLastActiveTimestamp|Structured failed|translateStructured|apply.*translation" src dist
+rg -n "batch-gemini|batch-zhipu|api-advanced|geminiBatchInput|zhipuBatchInput" src dist
+```
+
+Good cases:
+
+- Dropdown loses Groq after Gemini RACE -> search model pool, provider pool, dropdown render.
+- Prompt/response exists but apply fails -> search exact runtime error and apply path.
+- Remove old batch/warmup UI -> search old DOM ids, config keys, handlers, status text.
+
+#### 2. Read bounded range
+
+Read only the range around the anchor. Do not read a whole large file.
+
+Windows:
+
+```powershell
+$path = "src/dich_taobao/07-floating-ui-settings.js"
+$lines = [System.IO.File]::ReadAllLines($path, [System.Text.Encoding]::UTF8)
+for ($i = 3200; $i -le 3330; $i++) { '{0,5}: {1}' -f $i, $lines[$i-1] }
+```
+
+Linux:
+
+```bash
+nl -ba src/dich_taobao/07-floating-ui-settings.js | sed -n '3200,3330p'
+```
+
+For runtime translation failures:
+
+```powershell
+$path = "src/dich_taobao/priority-zone-engine.js"
+$lines = [System.IO.File]::ReadAllLines($path, [System.Text.Encoding]::UTF8)
+for ($i = 11800; $i -le 12380; $i++) { '{0,5}: {1}' -f $i, $lines[$i-1] }
+```
+
+```bash
+nl -ba src/dich_taobao/priority-zone-engine.js | sed -n '11800,12380p'
+```
+
+#### 3. Identify owner function/module and direct callers
+
+Map writer -> store -> reader -> UI/runtime consumer before patching.
+
+Windows:
+
+```powershell
+rg -n "function .*Pool|const .*Pool|setProviderPool|syncModelPoolFromProviderStore|getActivePool" src/dich_taobao
+rg -n "buildPriorityZoneOptions|chat-popup-model|priority-zone-engine" src/dich_taobao
+rg -n "07-floating-ui-settings|priority-zone-engine|dich_taobao.user" scripts src dist
+```
+
+Linux:
+
+```bash
+rg -n "function .*Pool|const .*Pool|setProviderPool|syncModelPoolFromProviderStore|getActivePool" src/dich_taobao
+rg -n "buildPriorityZoneOptions|chat-popup-model|priority-zone-engine" src/dich_taobao
+rg -n "07-floating-ui-settings|priority-zone-engine|dich_taobao.user" scripts src dist
+```
+
+Expected map examples:
+
+```text
+RACE -> providerModelPool[provider] -> sync flat modelPool -> dropdown options -> scheduler
+TRANSLATE response -> parse JSON -> apply translation -> update UI/cache/logs
+Settings render -> DOM id -> event binding -> config save/default/reset
+```
+
+#### 4. Say intended edit before writing
+
+Write one sentence to the user or your scratchpad. This prevents blind edits.
+
+Good:
+
+```text
+I will make providerModelPool the source of truth, refresh modelPool from all providers after each RACE, and keep dropdown rendering from the aggregate list.
+```
+
+Good:
+
+```text
+I will remove the old Batch tuning control across render, CSS, event binding, config defaults, and stale status text, then verify old ids have no active hits.
+```
+
+Bad:
+
+```text
+I will tweak the dropdown.
+```
+
+#### 5. Backup when risk is non-trivial
+
+For Lite, backup is optional only when the patch is truly tiny and git can recover it. Create `.bak2` for Unicode, generated artifacts, large files, or any risky UI/config edit.
+
+Windows:
+
+```powershell
+Copy-Item -LiteralPath "src/dich_taobao/07-floating-ui-settings.js" -Destination "src/dich_taobao/07-floating-ui-settings.js.bak2" -Force
+```
+
+Linux:
+
+```bash
+cp src/dich_taobao/07-floating-ui-settings.js src/dich_taobao/07-floating-ui-settings.js.bak2
+```
+
+If there is no git, also keep a session backup:
+
+```powershell
+Copy-Item -LiteralPath "file.ext" -Destination "file.ext.bak.codex-session-YYYYMMDD-topic" -Force
+```
+
+```bash
+cp file.ext "file.ext.bak.codex-session-$(date +%Y%m%d)-topic"
+```
+
+#### 6. Patch narrowly
+
+Patch the owner block, not every nearby string. For normal repo edits, use the patch tool. For encoding-sensitive full-file rewrites, preserve BOM/no-BOM exactly.
+
+Windows encoding check before risky rewrite:
+
+```powershell
+$path = "src/dich_taobao/07-floating-ui-settings.js"
+$b = [System.IO.File]::ReadAllBytes($path)
+if ($b.Length -ge 3 -and $b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { "UTF-8 BOM" }
+elseif ($b.Length -ge 2 -and $b[0] -eq 0xFF -and $b[1] -eq 0xFE) { "UTF-16 LE" }
+else { "UTF-8 no BOM or ASCII" }
+```
+
+Linux encoding check:
+
+```bash
+file -bi src/dich_taobao/07-floating-ui-settings.js
+xxd -l 3 src/dich_taobao/07-floating-ui-settings.js
+```
+
+Patch examples:
+
+- Dropdown bug: patch provider pool writer and dropdown hydration, not only option labels.
+- Runtime error after response: patch missing function/call path after response parsing, not API keys.
+- UI removal: patch render + handler + config + status text together.
+
+#### 7. Run syntax/build/test check
+
+Prefer the project verification command when known. On JS repos, `cmd /c npm run verify` is often safer in PowerShell than plain `npx`.
+
+Windows:
+
+```powershell
+node --check src/dich_taobao/07-floating-ui-settings.js
+node --check dist/dich_taobao.user.js
+cmd /c npm run verify
+```
+
+Linux:
+
+```bash
+node --check src/dich_taobao/07-floating-ui-settings.js
+node --check dist/dich_taobao.user.js
+npm run verify
+```
+
+Other language quick checks:
+
+```bash
+python3 -m py_compile file.py
+go test ./...
+cargo check
+php -l file.php
+ruby -c file.rb
+bash -n script.sh
+```
+
+#### 8. Re-read edited range or search changed anchors
+
+Prove the intended change exists and stale behavior is gone.
+
+Windows:
+
+```powershell
+rg -n "providerModelPool|setProviderPool|syncModelPoolFromProviderStore" src/dich_taobao dist/dich_taobao.user.js
+rg -n "clearPoolByProvider\('gemini'\)|clearPoolByProvider\('groq'\)|config\.modelPool = \[" src/dich_taobao
+rg -n "batch-gemini|batch-zhipu|api-advanced|geminiBatchInput|zhipuBatchInput" src dist
+```
+
+Linux:
+
+```bash
+rg -n "providerModelPool|setProviderPool|syncModelPoolFromProviderStore" src/dich_taobao dist/dich_taobao.user.js
+rg -n "clearPoolByProvider\('gemini'\)|clearPoolByProvider\('groq'\)|config\.modelPool = \[" src/dich_taobao
+rg -n "batch-gemini|batch-zhipu|api-advanced|geminiBatchInput|zhipuBatchInput" src dist
+```
+
+Interpretation:
+
+- New owner symbols should exist in source and generated output if generated output is used.
+- Removed UI ids/functions should have zero active hits or only documented migration notes.
+- If a model returned JSON, failures after that point are runtime/apply failures, not key failures.
+
+#### 9. Report changed files, verification, backup state, risk
+
+Keep final report short and concrete.
+
+```text
+Changed       : src/dich_taobao/07-floating-ui-settings.js, dist/dich_taobao.user.js
+Behavior      : provider RACE now updates providerModelPool and dropdown hydrates from aggregate store.
+Verification  : npm run verify -> OK; invariant search found no old shared-pool overwrite path.
+Backup state  : .bak2 deleted after pass; session backup kept at file.ext.bak.codex-session-YYYYMMDD-topic.
+Remaining risk: browser click-test recommended for settings dropdown.
+```
+
+---
+
+## Pre-Submit Checklist
+
+Run before marking any patch done. Skip only items that provably don't apply.
+
+```text
+[ ] Session backup exists for risky, non-git, generated, or encoding-sensitive modified files
+[ ] .bak2 created before this write (or git can recover trivially)
+[ ] old_str / patch anchor copied from actual file, not user-quoted spec
+[ ] Anchor is unique in file (or context added until unique)
+[ ] Encoding verified for non-ASCII files; BOM/no-BOM preserved after write
+[ ] Re-read edited range — intended change is visible in file
+[ ] Syntax/build check passed
+[ ] .bak2 deleted after pass (or kept if failed)
+[ ] Invariant search: old ids/functions -> 0 hits (or documented exception)
+[ ] Cascade check: all callers, consumers, generated output updated
+[ ] Report includes: changed files, behavior, verification, backup state, remaining risk
+```
+
+---
+
+## FULL PROTOCOL BOUNDARY
+
+Everything below is the full protocol. Use it for risky, unclear, multi-file, generated-file, encoding-sensitive, refactor/port, UI, or recovery work.
 
 ---
 
 ## 0. Hard Rules
 
-1. Never read a whole large file. Search first, then read bounded ranges (40–160 lines).
-2. Before the first write to any target file: detect encoding and create a session backup.
-3. Immediately before each write: create/refresh `file.ext.bak2`.
-4. Preserve original encoding exactly: UTF-8 BOM stays BOM; UTF-8 no-BOM stays no-BOM.
-5. Prefer `apply_patch` for normal repo edits. For encoding-sensitive files, use .NET `ReadAllText/WriteAllText`.
-6. After every write: run the syntax check for the file's language (see Section 6).
-7. If verification passes: delete `.bak2`. If it fails: restore `.bak2`, fix, verify again.
-8. Patch spec from user may be STALE — verify actual current code before applying.
-9. Never revert unrelated user changes. Work around them or ask only if blocked.
-10. Final response must mention: changed files, verification result, backup state, remaining risk.
+1. Search before reading. Read bounded ranges, not whole large files.
+2. Before writing: identify source-of-truth files versus generated outputs/reference files.
+3. Detect encoding and create a session backup before the first risky write.
+4. Create/refresh `.bak2` immediately before each write.
+5. Preserve encoding exactly: UTF-8 BOM stays BOM, UTF-8 no-BOM stays no-BOM.
+6. Use stable ASCII anchors when terminal output may show mojibake.
+7. Patch render + handler + state + save/config + CSS together when UI controls change.
+8. Run syntax/build/tests and invariant searches after meaningful edits.
+9. Delete `.bak2` only after verification passes. Clean session backups only under Backup Cleanup Protocol.
+10. Never revert unrelated user/human/agent changes.
 
 ---
 
-## 1. Fast Workflow
+## 1. Source-of-Truth Detection
 
-Execute in this exact order:
+Before patching, determine which file actually controls runtime.
 
-1. **Locate anchors** — use `rg` when available; otherwise `Select-String`.
-2. **Read bounded range** — 40–160 lines around each anchor.
-3. **Structural Scan** (Section 4A) → **Data Flow Trace** (Section 4B) → **Blast Radius** (Section 4C). Mandatory before coding.
-4. **Detect encoding** (Section 2).
-5. **Create session backup** if not yet created for this target.
-6. **Create `.bak2`** immediately before writing.
-7. **Patch narrowly**.
-8. **Verify** syntax + searched invariants.
-9. **Delete `.bak2`** only after verification passes.
-10. **Report** concise result (Section 9).
+Search build scripts and generated hints with `rg "build|dist|bundle|generated|do not edit" package.json scripts src .`, then classify files:
+
+```text
+SOURCE        : files humans should edit
+GENERATED     : build output; regenerate after source edits
+REFERENCE     : old monolith/spec/sample; do not patch unless requested
+UNKNOWN       : inspect build path before writing
+```
+
+Do not patch generated output as the only fix unless the user explicitly wants a one-off artifact edit. If user-run artifact is generated, patch source then rebuild output.
+
+Example:
+
+```text
+src/dich_taobao/07-floating-ui-settings.js   SOURCE
+src/dich_taobao.user.js                      REFERENCE/stale monolith
+dist/dich_taobao.user.js                     GENERATED user artifact
+```
 
 ---
 
-## 2. Encoding-Safe Write Pattern
+## 2. Search And Bounded Read
 
-Use for: any file with non-English characters (Vietnamese/CJK/European/emoji), any UTF-8 BOM file, any large external file, any file with known encoding risk.
+```bash
+rg -n "renderApiProviderCard|batch-gemini|api-advanced" src/
+grep -n "uniqueToken\|rareFunction" file.js
+```
+
+```powershell
+Select-String -LiteralPath "file.js" -Pattern "uniqueToken|rareFunction" | Select-Object LineNumber, Line
+$lines = [System.IO.File]::ReadAllLines("file.js", [System.Text.Encoding]::UTF8)
+for ($i = 1200; $i -le 1280; $i++) { '{0,6}: {1}' -f $i, $lines[$i-1] }
+```
+
+If the requested anchor is not found anywhere, stop and ask. The code may have been refactored.
+
+---
+
+## 3. Architecture And Flow Map
+
+Before non-trivial edits, produce a compact map for yourself and, when helpful, share it.
+
+Structural scan:
+
+```bash
+rg -n "^function |^const |^class |^async function |^export " file.js
+rg -n "addEventListener|\.onclick|\.on\(|saveConfig|render" file.js
+rg -n "targetSymbol" src/
+```
+
+```powershell
+Select-String -LiteralPath "file.js" -Pattern "^function |^const |^class |^async function |^export " | Select-Object LineNumber, Line
+Select-String -LiteralPath "file.js" -Pattern "addEventListener|\.onclick|saveConfig|render" | Select-Object LineNumber, Line
+```
+
+Map format:
+
+```text
+ARCHITECTURE_MAP:
+  source-of-truth : src/module.js -> dist/app.js generated by npm run build
+  config/state    : config.apiKeys, config.modelPool
+  render          : renderSettings()
+  handlers        : bindSettingsEvents(), saveConfig()
+  flow            : UI input -> state -> API call -> cache/render
+  blast radius    : dropdown IDs, event handlers, scheduler consumers
+```
+
+Blast-radius questions:
+
+- Direct: what code changes?
+- Indirect: who calls/consumes it?
+- State: what shared config/global fields are read/written?
+- UI: what DOM IDs/classes/events are affected?
+- Timing: async callbacks/debounce/race?
+- Build: what output must be regenerated?
+
+---
+
+## 4. Safe Edit Protocol
+
+Encoding detection: inspect first bytes for UTF-8 BOM / UTF-16 LE / UTF-8 no BOM before risky rewrites. Session backup, once per target/work stream:
+
+```bash
+BAK="file.ext.bak.session-$(date +%Y%m%d)-topic"
+[ ! -f "$BAK" ] && cp file.ext "$BAK"
+```
+
+```powershell
+$sessionBak = "file.ext.bak.codex-session-YYYYMMDD-topic"
+if (-not (Test-Path -LiteralPath $sessionBak)) {
+    Copy-Item -LiteralPath "file.ext" -Destination $sessionBak -Force
+}
+```
+
+Pre-write backup:
+
+```bash
+cp file.ext file.ext.bak2
+```
+
+```powershell
+Copy-Item -LiteralPath "file.ext" -Destination "file.ext.bak2" -Force
+```
+
+After success:
+
+```bash
+rm file.ext.bak2
+```
+
+```powershell
+Remove-Item -LiteralPath "file.ext.bak2" -Force
+```
+
+### Backup Cleanup Protocol
+
+Goal: keep rollback while editing, then remove backup noise only when it is safe.
+
+Always:
+
+- Keep `.bak2` while the current write is unverified.
+- Delete `.bak2` only after syntax/build/tests and invariant searches pass.
+- If verification fails, restore `.bak2`, re-read the exact range, patch smaller, verify again.
+- Never delete the only known-good copy in a non-git workspace.
+
+Git workspace cleanup:
+
+```bash
+git status --short
+git diff -- file.ext
+npm run verify
+rm file.ext.bak2
+```
+
+```powershell
+git status --short
+git diff -- "file.ext"
+cmd /c npm run verify
+Remove-Item -LiteralPath "file.ext.bak2" -Force
+```
+
+Session backup cleanup is allowed only when all are true:
+
+- `git status --short` shows the intended changed files and no surprise target-file changes.
+- `git diff -- file.ext` is readable and contains the intended patch.
+- Verification passed.
+- The final answer reports changed files and backup state.
+
+Then either keep the session backup for the user to delete later, or delete it if the user asked for a clean workspace:
+
+```bash
+rm "file.ext.bak.codex-session-YYYYMMDD-topic"
+```
+
+```powershell
+Remove-Item -LiteralPath "file.ext.bak.codex-session-YYYYMMDD-topic" -Force
+```
+
+Non-git workspace cleanup:
+
+```bash
+sha256sum "file.ext.bak.codex-session-YYYYMMDD-topic" file.ext
+npm run verify
+rm file.ext.bak2
+```
+
+```powershell
+Get-FileHash -Algorithm SHA256 "file.ext.bak.codex-session-YYYYMMDD-topic"
+Get-FileHash -Algorithm SHA256 "file.ext"
+cmd /c npm run verify
+Remove-Item -LiteralPath "file.ext.bak2" -Force
+```
+
+Keep the session backup by default in non-git workspaces. Delete it only when the user explicitly asks for cleanup or you created a newer verified archival backup. In the final answer, tell the user where the session backup is.
+
+Generated files:
+
+- If source was patched and generated output rebuilt, delete `.bak2` for both only after source verification and generated artifact verification pass.
+- Do not keep backup artifacts inside `dist/` longer than the current turn unless the user asks; generated files can usually be rebuilt.
+
+Tool selection: use normal patch tools for small code edits; use explicit Python/.NET encoding writes for full-file or Unicode-sensitive rewrites; patch source then rebuild generated artifacts. Windows encoding-safe rewrite:
 
 ```powershell
 $path = "C:\path\file.ext"
@@ -65,353 +563,264 @@ $hasBom = $b.Length -ge 3 -and $b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq
 $content = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
 $nl = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
 
-# Modify $content using exact ASCII anchors where possible.
-# Never rely on terminal-rendered output when console may show mojibake for non-English chars.
+# Modify content using stable ASCII anchors. Avoid terminal-rendered mojibake text.
 
 $utf8 = [System.Text.UTF8Encoding]::new($hasBom)
 [System.IO.File]::WriteAllText($path, $content, $utf8)
 ```
 
-**Forbidden for encoding-sensitive files:**
-```
+Forbidden for encoding-sensitive files:
+
+```text
 Get-Content | Set-Content
 Set-Content -Encoding UTF8
 WriteAllLines after Get-Content
-IDE replace tools that may strip/add BOM
-```
-
-**Encoding check:**
-```powershell
-$b = [System.IO.File]::ReadAllBytes($path)
-if ($b.Length -ge 3 -and $b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { "UTF-8 BOM" }
-elseif ($b.Length -ge 2 -and $b[0] -eq 0xFF -and $b[1] -eq 0xFE) { "UTF-16 LE" }
-else { "UTF-8 no BOM or ASCII" }
+copying terminal mojibake into source
 ```
 
 ---
 
-## 3. Backup Protocol
+## 5. UI Removal And Settings Changes
 
-### Session backup — once per target file per work stream. Never overwrite.
-```powershell
-$sessionBak = "file.ext.bak.codex-session-YYYYMMDD-topic"
-if (-not (Test-Path -LiteralPath $sessionBak)) {
-    Copy-Item -LiteralPath "file.ext" -Destination $sessionBak -Force
-}
-```
+When adding/removing/changing a UI control, patch all matching paths.
 
-### Current-request backup — immediately before every write.
-```powershell
-Copy-Item -LiteralPath "file.ext" -Destination "file.ext.bak2" -Force
-```
+Checklist:
 
-### Rollback decision tree
-```
-Patch failed?
-├── Syntax error, just applied  →  restore .bak2, fix the patch, retry
-└── Multiple patches broken     →  restore session backup, restart from clean state
+```text
+Render/HTML       : element, id, class, label
+CSS               : selectors and layout rules
+Event binding     : querySelector, onclick, addEventListener
+State/config      : save path, defaults, migration, reset buttons
+Status/logging    : user feedback and debug output
+Consumers         : scheduler/API/cache/dropdowns using that state
+Generated output  : rebuild dist if needed
+Invariant search  : old id/class/function should be zero unless intentionally kept
 ```
 
-**On failure:**
-```powershell
-Copy-Item -LiteralPath "file.ext.bak2" -Destination "file.ext" -Force
-# Re-apply a smaller safer patch, then verify again.
+Removal invariant example:
+
+```bash
+rg -n "batch-gemini|batch-zhipu|api-advanced|geminiBatchInput|zhipuBatchInput" src dist
 ```
 
-**After success:**
-```powershell
-Remove-Item -LiteralPath "file.ext.bak2" -Force
-```
+If a removed DOM id still appears in active code, the task is not done.
+
+For dynamic API/model settings:
+
+- Keep raw API model IDs separate from friendly display names.
+- Do not show key labels A/B/C as the primary model identity unless the user needs key debugging.
+- Live provider IDs are for API calls; labels are for UI only.
+- If a provider is removed from active registry, check settings UI, scheduler, planner dropdowns, model pool, and cache keys.
+- After RACE/test/reload buttons, status should say what happened, not just change the button text.
 
 ---
 
-## 4. Code Comprehension, Search & Architecture
+## 6. Refactor And Port Protocol
 
-Do not patch blindly. Map the architecture first to prevent breaking dependencies.
+Use for behavior-preserving restructure, cross-module changes, or moving a feature between projects.
 
-### A. Structural Scan — get the skeleton
-```powershell
-# Count lines
-(Get-Content "file.ext").Count
+Pre-work:
 
-# JS/TS: function map
-Select-String -LiteralPath "file.js" -Pattern "^function |^const |^class |^async function |^export " |
-    Select-Object LineNumber, Line | Format-Table -AutoSize
-
-# Python: class/def map
-Select-String -LiteralPath "file.py" -Pattern "^def |^class |^async def " | Select-Object LineNumber, Line
-
-# Event listeners / UI entry points
-Select-String -LiteralPath "file.js" -Pattern "addEventListener|\.on\(" | Select-Object LineNumber, Line
-
-# Startup / bootstrap
-Select-String -LiteralPath "file.js" -Pattern "DOMContentLoaded|window\.onload|\.init\(\)|^main\(\)" |
-    Select-Object LineNumber, Line
+```bash
+rg -n "oldFunction|oldPattern" src/
+rg -n "functionBeingChanged" src/
+rg -n "import .*module|require\(" src/
 ```
 
-After scanning, produce an ARCHITECTURE_MAP and share it with the user:
-```
-ARCHITECTURE_MAP:
-  config/state   : aiTransConfig (line 120), userPrefs (line 340)
-  core logic     : translateText() (450), callAPI() (890)
-  ui layer       : renderUI() (2100), bindEvents() (2350)
-  data flow      : userAction → bindEvents → translateText → callAPI → renderUI
-  entry point    : DOMContentLoaded (14800)
-```
+Build a map before editing:
 
-### B. Data Flow Tracing
-
-Forward trace (source → destination):
-```powershell
-# Where is the variable CREATED
-Select-String -LiteralPath "file.ext" -Pattern "apiKey\s*=" |
-    Where-Object { $_.Line -notmatch "//|param|function" } | Select-Object LineNumber, Line
-
-# Where is it MUTATED
-Select-String -LiteralPath "file.ext" -Pattern "apiKey" |
-    Where-Object { $_.Line -match "=|push|pop|splice|delete" } | Select-Object LineNumber, Line
-
-# Where is it READ
-Select-String -LiteralPath "file.ext" -Pattern "apiKey" |
-    Where-Object { $_.Line -notmatch "=|push|pop" } | Select-Object LineNumber, Line
+```text
+REFACTOR_MAP:
+  source behavior : what currently works
+  target behavior : what must remain/change
+  dependencies    : imports, globals, config keys, env vars, CSS classes
+  call order      : leaf -> callers -> entry point
+  verification    : syntax, tests, invariant searches
 ```
 
-Backward trace (bug → root cause):
-```powershell
-# Start from broken UI output → find render function → find state variable → find where state is set
-Select-String -LiteralPath "file.ext" -Pattern "renderUI|innerHTML|textContent" | Select-Object LineNumber, Line
+Execution order:
+
+```text
+Correct: leaf function -> direct caller -> parent flow -> entry point
+Wrong  : entry point first, then chase breakage
 ```
 
-### C. Blast Radius Assessment
+For ports:
 
-Before writing any patch, answer:
-- **Direct:** what code am I changing?
-- **Indirect:** what functions call the changed code?
-- **State:** what global/shared variables are read or written?
-- **UI:** what DOM elements or event handlers are affected?
-- **Timing:** any async callbacks, debounce, or event queues involved?
-
-```powershell
-# Find all references to changed symbol before patching
-Select-String -LiteralPath "file.ext" -Pattern "targetName" | Select-Object LineNumber, Line
-```
-
-### D. Anchor Search
-
-Always use unique tokens. Never use the full block from user (may be stale).
-
-```powershell
-# Search unique token
-Select-String -LiteralPath "file.js" -Pattern "uniqueLogString|rareVarName" | Select-Object LineNumber, Line
-
-# Filter by line range when too many hits
-Select-String -LiteralPath "file.js" -Pattern "renderApiKey" |
-    Where-Object { $_.LineNumber -gt 8000 } | Select-Object LineNumber, Line
-```
-
-### E. Read Bounded Range
-
-Never read the whole file. Read 40–160 lines around the anchor.
-
-```powershell
-$lines = [System.IO.File]::ReadAllLines("file.js", [System.Text.Encoding]::UTF8)
-for ($i = 1200; $i -le 1280; $i++) { '{0,6}: {1}' -f $i, $lines[$i-1] }
-```
+1. List dependencies in source project.
+2. Map each dependency to target project equivalent.
+3. Identify missing helpers/config/styles.
+4. Patch target in small slices.
+5. Verify target behavior, not just compile success.
 
 ---
 
-## 5. Patch Strategy
+## 7. Stale Spec Handling
 
-### Prefer smallest reliable change.
+User specs and previous-agent notes can be stale.
 
-Use `apply_patch` when:
-- File is inside writable workspace
-- Patch is small/normal code text
-- Encoding risk is low
+If spec differs from current code:
 
-Use .NET scripted replacement (Section 2) when:
-- File has BOM/no-BOM that must be preserved
-- Terminal display may corrupt non-English characters/emoji
-- Need ASCII anchors around non-ASCII strings
-
-For multiple patches in one file:
-- Prefer one validated script when encoding-sensitive
-- Otherwise patch bottom-to-top to avoid line drift
-- Verify after each meaningful write, not at the end of a chain
-
-### Stale spec handling
-
-When spec differs from current code — mandatory protocol, never merge silently:
-
-```
-1. Show user the diff:
-   "Spec says: [X]"
-   "Current code is: [Y]"
-   "Difference: [explain]"
-
-2. Ask explicitly:
-   "Apply spec as-is? / Adapt to current code? / Skip this patch?"
-
-3. No confirmation = no patch.
-   If user is absent → leave a TODO comment, continue to next item.
+```text
+Spec says      : old shape
+Current code   : actual shape
+Difference     : what changed
+Recommendation : adapt / apply as-is / skip
 ```
 
-When spec is completely unrecognizable (not found anywhere): STOP, ask user — file may have been refactored.
+Ask if applying stale spec could destroy current behavior. If the safe adaptation is obvious and local, adapt and mention it. If not obvious, stop and ask.
+
+Never silently merge stale instructions into unfamiliar code.
 
 ---
 
-## 6. Verification
+## 8. Failure Recovery
 
-### Syntax check by language
+Rollback decision tree:
 
-| Language | Command |
+```text
+Syntax error just introduced
+  -> restore .bak2 -> re-read exact range -> smaller patch -> verify
+
+Build/test fails after patch
+  -> do not patch randomly -> trace failure to changed symbol -> targeted fix -> verify
+
+Runtime wrong behavior, no error
+  -> backward trace from bad output -> state mutation -> handler/render path -> targeted fix
+
+Encoding/mojibake corruption
+  -> stop -> restore .bak2/session backup -> detect encoding -> rewrite with explicit encoding
+
+Multiple files broken
+  -> list broken files -> restore each from its own backup -> redo blast radius before patching
+```
+
+Rules:
+
+- Do not add a second workaround on top of a broken first patch.
+- Re-read after restore.
+- If the same patch fails twice, stop and ask.
+
+---
+
+## 9. Verification
+
+Syntax/build checks: JS `node --check`, TS `npx tsc --noEmit`, Python `python3 -m py_compile`, Go `go test ./...`, Rust `cargo check`, PHP `php -l`, Ruby `ruby -c`, Bash `bash -n`, PowerShell parser. Project verification beats generic syntax check when available:
+
+```bash
+npm run verify
+npm test
+npm run build
+```
+
+Post-patch invariants:
+
+```bash
+rg -n "oldId|oldFunction|oldConfigKey" src dist       # expect 0 unless intentional
+rg -n "newId|newFunction|newConfigKey" src dist       # expect expected hits
+```
+
+Cascade checks:
+
+| Change | Verify |
 |---|---|
-| JavaScript `.js` | `node --check file.js` |
-| TypeScript `.ts` | `npx tsc --noEmit` |
-| Python `.py` | `python -m py_compile file.py` |
-| Go `.go` | `go vet ./...` |
-| Rust `.rs` | `cargo check` |
-| PHP `.php` | `php -l file.php` |
-| Ruby `.rb` | `ruby -c file.rb` |
-| Bash `.sh` | `bash -n file.sh` |
-| PowerShell `.ps1` | `$e=$null; [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$null,[ref]$e); $e` |
-| C/C++ `.c/.cpp` | `gcc -fsyntax-only file.c` |
-
-Auto-detect and check:
-```powershell
-Get-Command node, python, go, php, ruby 2>$null | Select-Object Name, Source
-```
-
-### Post-patch invariants
-
-```powershell
-# 1. No dangling references to old name (must = 0)
-Select-String -LiteralPath "file.ext" -Pattern "oldName" | Measure-Object
-
-# 2. New name exists (must = expected count)
-Select-String -LiteralPath "file.ext" -Pattern "newName" | Measure-Object
-
-# 3. Balanced braces (JS/TS)
-$c = Get-Content "file.ext" -Raw
-($c.ToCharArray() | Where-Object { $_ -eq '{' }).Count
-($c.ToCharArray() | Where-Object { $_ -eq '}' }).Count
-
-# 4. Re-read edited range to confirm result
-$lines = [System.IO.File]::ReadAllLines("file.ext", [System.Text.Encoding]::UTF8)
-for ($i = $editStart; $i -le $editEnd; $i++) { '{0,6}: {1}' -f $i, $lines[$i-1] }
-
-# 5. Re-check encoding after write
-$b = [System.IO.File]::ReadAllBytes($path)
-if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { "BOM preserved OK" } else { "UTF-8 no BOM" }
-```
-
-### Cascade analysis — run after every non-trivial patch
-
-| Change Type | Must Verify |
-|---|---|
-| Rename function | All call sites updated |
+| Rename function | All call sites |
 | Change signature | All callers pass correct args |
-| Change return format | All consumers handle new format |
-| Rename/remove state field | All readers + writers |
-| Rename CSS class | All classList.add/remove + CSS rules |
-| Change config key | All readers of that key |
-
-### Proactive bug hunt
-
-After each patch, scan for these common side effects:
-
-| Pattern | Detection |
-|---|---|
-| Undefined variable | Declared before use? |
-| Missing function definition | Definition still exists after rename? |
-| Dead code after refactor | Old name still called anywhere? |
-| Missing backward-compat | Old config key migrated everywhere? |
-| Event listener leak | Every `addEventListener` has matching `removeEventListener`? |
-| Hardcoded stale values | Old string literals in non-config lines? |
+| Change return shape | All consumers parse new shape |
+| Remove DOM id/class | Render, CSS, handlers, tests, dist |
+| Change config key | Defaults, migration, readers/writers |
+| Change provider/model | UI dropdowns, API calls, scheduler, cache |
+| Generated output | Build regenerated artifact |
 
 ---
 
-## 7. Multi-Agent Mid-Session Onboarding
+## 10. Multi-Agent Handoff
 
-Use when joining a session already in progress.
+When joining an in-progress session, run these steps before patching:
 
-```powershell
-# Step 1 — Verify session backup exists. Create immediately if missing.
-Test-Path "file.ext.bak*"
+1. Verify session backup exists. Create immediately if missing.
+2. Check for ARCHITECTURE_MAP or notes from previous agent. If found, read before touching code. If not, run Section 3 Structural Scan.
+3. Check for feature_map / knowledge index files:
+   ```bash
+   find . -maxdepth 3 \( -iname "*feature_map*" -o -iname "*KI*" -o -iname "*knowledge*" \) 2>/dev/null
+   ```
+   ```powershell
+   Get-ChildItem -Recurse | Where-Object { $_.Name -match 'feature_map|knowledge|KI' } | Select-Object FullName
+   ```
+   If found, read before writing any code.
+4. Confirm tool availability: `node`, `python3`, `go`, `npm run verify` as needed.
+5. Check git status for changes by other agents/humans: `git status --short`. Re-verify anchors if target files are dirty.
 
-# Step 2 — Check for ARCHITECTURE_MAP from previous agent
-# If found → read it first. If not → run Section 4A Structural Scan.
+Rules:
 
-# Step 3 — Confirm tool availability
-Get-Command node, python, go, php 2>$null | Select-Object Name, Source
+- Do not overwrite another agent's session backup.
+- If a human changed a file, re-check anchors before applying pending patches.
+- Treat previous notes as hints, not truth. Verify against live code.
+- If worktree is dirty, do not revert unrelated changes.
 
-# Step 4 — Check for feature_map or knowledge index
-Get-ChildItem -Filter "*feature_map*","*knowledge*","*KI*" -Recurse | Select-Object FullName
-# If found → read before touching any code.
+---
+
+## 11. Example Scenarios
+
+### A. Remove old settings control safely
+
+Task: remove Batch tuning from API settings.
+
+Correct flow:
+
+```text
+Search: batch-gemini, batch-zhipu, api-advanced
+Read : render block, CSS block, Gemini handler, Zhipu handler, generic provider save
+Patch: remove visible controls, remove default buttons, remove save reads, remove null-crash handlers
+Verify: npm run verify
+Invariant: rg "batch-gemini|batch-zhipu|api-advanced|geminiBatchInput|zhipuBatchInput" src dist -> 0
 ```
 
-Do NOT start patching until all steps are confirmed. Then ask the user:
-> "Ready. Session backup confirmed. What's the current task?"
+### B. Fix generated/source confusion
 
----
+Task: userscript does not reflect settings change.
 
-## 8. Large JS UI Files
+Correct flow:
 
-Safe orientation order:
-1. Find config/state key (line ~top of file)
-2. Find UI render block (search `renderUI|innerHTML|textContent`)
-3. Find event handlers and save path (search `addEventListener|saveConfig`)
-4. Find initialization/bootstrap (search `DOMContentLoaded`)
-5. Find CSS if visual issue (search class name in style blocks)
-6. Patch all affected paths or explicitly state why not
-7. Run `node --check`
-8. Search old IDs/classes/functions to confirm removal
-
-For dynamic dropdown/model lists:
-- Keep API IDs separate from display names
-- If provider returns live IDs, use those for API calls
-- Hardcoded names are friendly labels and priority ordering only
-- Unknown live models can be shown with generated labels if filtered for correct modality
-
-For popup/scroll UI:
-- If a guard must always be visible, make it part of the scroll container frame (`border`, `padding`, `sticky`), not only an element at the bottom of scroll content
-- If a placeholder/status has no real information, hide it by default and show only when populated
-
----
-
-## 9. Failure Recovery
-
-If syntax check fails immediately after a patch:
-1. Do not edit the broken file further
-2. Restore `.bak2`
-3. Re-read the exact range
-4. Apply a smaller, simpler patch
-5. Verify again
-
-If encoding looks corrupted:
-1. Stop editing immediately
-2. Restore `.bak2` if available; otherwise restore session backup
-3. Re-apply minimal changes using .NET explicit encoding (Section 2)
-4. Verify encoding and a known non-ASCII string after write
-
----
-
-## 10. Concise Final Report
-
-Include only high-signal items:
-
+```text
+Find build script -> identify source chunks -> patch source chunk -> run npm run build/verify -> inspect dist -> leave stale reference untouched
 ```
-Files changed   : file.js (lines X–Y, Z–W)
-Behavior change : [what changed and why]
-Verification    : node --check → OK | FAIL
-Encoding        : UTF-8 BOM preserved / UTF-8 no BOM preserved
-Backup state    : session backup kept at file.js.bak.codex-session-...
-                  .bak2 deleted (verification passed) / kept (verification failed)
-Remaining risk  : [any manual browser check or known limitation]
+
+### C. Recover from mojibake display
+
+Task: patch Vietnamese UI string, terminal displays garbage.
+
+Correct flow:
+
+```text
+Do not patch using garbled terminal text.
+Use ASCII anchors around the block.
+Detect BOM/no-BOM.
+Write with explicit encoding.
+Verify known string or invariant after write.
+```
+
+### D. API provider cleanup
+
+Task: remove provider or weak models.
+
+Correct flow:
+
+```text
+Registry -> settings tabs -> planner provider dropdown -> model filters -> scheduler candidates -> cache/model pool -> status logs -> dist build
 ```
 
 ---
 
-## 11. Do Not Over-Expand
+## 12. Concise Final Report
 
-This is the complete active protocol. Act on it directly. Do not narrate the skill loading or explain the workflow to the user unless asked. The default is to execute.
+Final response should include only high-signal items:
+
+```text
+Changed       : file.js, dist/app.js
+Behavior      : removed old Batch UI and dead handlers; moved key visibility toggle beside Add key
+Verification  : npm run verify -> OK
+Invariants    : old batch IDs/functions -> 0 hits in source/dist
+Backup state  : .bak2 deleted after pass; session backup kept/removed per user preference
+Remaining risk: browser visual check if UI layout changed
+```

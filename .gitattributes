@@ -1,0 +1,3 @@
+# Exclude old_version/ from GitHub ZIP/tar downloads (git archive)
+# git clone still downloads everything — this only affects release archives
+old_version/ export-ignore
