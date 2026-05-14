@@ -157,31 +157,53 @@ src/app.user.js        → REFERENCE — bản monolith cũ, không động vào
 → Patch source → chạy npm run build → kiểm tra dist
 ```
 
-### Tình huống 3: Dropdown mất model sau khi test provider
-> **Task:** test Groq xong rồi chạy RACE với Gemini, dropdown chỉ còn hiện model của Gemini.
+### Tình huống 3: Phiên làm việc mới, quyết định cũ, rủi ro nhầm file
+> **Task:** tiếp tục một dự án dịch thuật phức tạp sau khi nhiều phiên làm việc trước đã đụng chạm vào source chunk, output generated, context docs, và file backup.
 
-**❌ Không có skill:** Agent nhảy vào sửa label dropdown. Không có tác dụng vì label không phải nguyên nhân.
+**❌ Không có skill:** Agent quá tin vào cái note mới nhất của user hoặc tên file nhìn có vẻ đúng, đè ra sửa sai chỗ và vô tình phá vỡ kiến trúc cũ. Build có thể pass, nhưng phiên tiếp theo sẽ không biết đâu là file source, đâu là file gen, đâu là file nháp.
 
-**✅ Với Update Helper:** Agent trace theo luồng dữ liệu:
+**✅ Với Update Helper:** Agent bắt đầu bằng cách map lại luồng:
+```text
+Read first: Đọc SESSION_BRIEF / CTO_HANDOFF / TASK_LIST / TEST_REPORT
+Classify:   src chunks → SOURCE, dist → GENERATED, monolith → REFERENCE
+Check:      Check git status / file untracked / backup hiện có
+Patch:      Chỉ patch source, sau đó rebuild output
+Report:     Báo cáo file đã đổi + kết quả verify + trạng thái backup
+
+→ Kết quả: Agent tiếp theo cứ thế làm tiếp thay vì phải đi đào lại luồng dự án từ đầu.
 ```
-RACE → providerModelPool[provider] → sync flat modelPool → dropdown → scheduler
 
-→ Phát hiện: RACE đang overwrite toàn bộ modelPool thay vì chỉ cập nhật provider đó
-→ Fix đúng chỗ: RACE chỉ update providerModelPool[provider], dropdown hydrate từ aggregate store
+### Tình huống 4: API trả dữ liệu đúng, nhưng vẫn lỗi dịch
+> **Task:** log hiển thị response từ AI hoàn toàn hợp lệ, nhưng UI không hiện gì đúng.
+
+**❌ Không có skill:** Agent lao vào đổi model, đổi API key, sửa prompt, nhảy qua lại giữa các provider. Không giải quyết được vì API ngay từ đầu không hề lỗi.
+
+**✅ Với Update Helper:** Agent mổ xẻ từng tầng của pipeline:
+```text
+Lấy được input?      → Có ✅
+Gửi request?         → Có ✅
+Nhận response?       → Có, chuẩn JSON ✅
+Parse/Validate pass? → Có ✅
+Apply/Cache/Render?  → Tịt ngay lúc apply vào DOM ❌
+
+→ Căn nguyên: Response xử lý ngon lành; vấn đề là DOM target/hash không còn khớp sau lần refactor trước.
+→ Fix: Patch ở tầng apply/cache, tuyệt đối không đụng vào tầng provider/model.
 ```
 
-### Tình huống 4: API trả dữ liệu đúng nhưng vẫn báo lỗi
-> **Task:** log đã thấy response hợp lệ, nhưng scheduler vẫn báo failed.
+### Tình huống 5: Rác backup chất đống sau chuỗi ngày debug
+> **Task:** sau nhiều session, repo xuất hiện một đống file `.bak2`, `.bak.codex-session-*`, và các file skill bị đổi tên lung tung.
 
-**❌ Không có skill:** Agent tiếp tục đổi model, test key, đổi provider. Không giải quyết được.
+**❌ Không có skill:** Agent âm thầm xóa bay mọi file backup để trả lại workspace "nhìn có vẻ sạch" — xóa luôn cả bản copy tốt duy nhất của một file chưa được git theo dõi (untracked).
 
-**✅ Với Update Helper:** Agent tách 3 tầng:
-```
-Request gửi đi?  → Có ✅
-Response nhận về? → Có, JSON hợp lệ ✅
-Xử lý sau khi nhận? → Crash ở bước apply translation ❌
+**✅ Với Update Helper:** Agent coi việc dọn dẹp là một cánh cổng có lính canh (safety-gated):
+```text
+List:    Liệt kê chính xác ứng viên để xóa, không dùng wildcard tràn lan
+Verify:  Lệnh build/check chạy pass
+Ask:     Đợi user xác nhận behavior hiện tại đã chạy ngon
+Clean:   Chỉ xóa các backup artifact đã được review
+Report:  Báo cáo rõ đã xóa gì và cố tình giữ lại gì
 
-→ Root cause: hàm apply bị xóa trong lần refactor trước, chưa cập nhật call site
+→ Kết quả: An toàn rollback 100% lúc đang làm, và workspace lại sạch bong sau khi user chốt hạ.
 ```
 
 ---

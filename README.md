@@ -157,31 +157,53 @@ src/app.user.js        → REFERENCE — old monolith, do not touch
 → Patch source → run npm run build → inspect dist
 ```
 
-### Scenario 3: Dropdown loses models after testing a provider
-> **Task:** after testing Groq then running RACE with Gemini, the dropdown only shows Gemini models.
+### Scenario 3: New session, old decisions, wrong file risk
+> **Task:** continue a complex translation project after several prior sessions touched source chunks, generated output, context docs, and backups.
 
-**❌ Without skill:** Agent edits the dropdown labels. No effect — labels are not the cause.
+**❌ Without skill:** Agent trusts the newest user note or the visible file name, edits the wrong surface, and accidentally drifts away from the previous architecture. The build may pass, but the next session no longer knows which file is source, generated, reference, or stale.
 
-**✅ With Update Helper:** Agent traces the data flow:
+**✅ With Update Helper:** Agent starts by rebuilding the map:
 ```
-RACE → providerModelPool[provider] → sync flat modelPool → dropdown → scheduler
+Read first: SESSION_BRIEF / CTO_HANDOFF / TASK_LIST / TEST_REPORT
+Classify:   src chunks → SOURCE, dist → GENERATED, monolith → REFERENCE
+Check:      git status / untracked files / existing backups
+Patch:      source only, then rebuild output
+Report:     changed files + verification + backup state
 
-→ Found: RACE was overwriting the entire modelPool instead of only updating that provider
-→ Fix: RACE only updates providerModelPool[provider], dropdown hydrates from the aggregate store
+→ Result: the next agent continues the work instead of re-discovering the whole project
 ```
 
-### Scenario 4: API returns valid data but still reports failure
-> **Task:** logs show a valid response, but the scheduler still reports failed.
+### Scenario 4: API returns valid data, but translation still fails
+> **Task:** logs show a valid AI response, but nothing appears correctly in the UI.
 
-**❌ Without skill:** Agent keeps swapping models, testing keys, switching providers. Nothing works.
+**❌ Without skill:** Agent keeps swapping models, testing keys, changing prompts, or switching providers. Nothing works because the API was never the broken layer.
 
-**✅ With Update Helper:** Agent separates three layers:
+**✅ With Update Helper:** Agent separates the pipeline:
 ```
+Collect input?       → Yes ✅
 Request sent?        → Yes ✅
 Response received?   → Yes, valid JSON ✅
-Post-processing?     → Crash at apply translation step ❌
+Parse/validate?      → Yes ✅
+Apply/cache/render?  → Fails at exact DOM apply ❌
 
-→ Root cause: the apply function was deleted in a previous refactor, call site never updated
+→ Root cause: response handling was fine; the DOM target/hash no longer matched after a previous refactor
+→ Fix: patch the apply/cache layer, not the provider/model layer
+```
+
+### Scenario 5: Backup files pile up after long debugging
+> **Task:** after several sessions, the repo has `.bak2`, `.bak.codex-session-*`, and renamed skill files everywhere.
+
+**❌ Without skill:** Agent silently deletes backups to make the workspace look clean — including the only good copy of an untracked file.
+
+**✅ With Update Helper:** Agent treats cleanup as a safety-gated step:
+```
+List:    exact backup candidates, no broad wildcard delete
+Verify:  build/check passes
+Ask:     user confirms the current behavior is good
+Clean:   delete only reviewed backup artifacts
+Report:  what was removed and what was intentionally kept
+
+→ Result: rollback safety during active work, clean workspace after the user has tested
 ```
 
 ---
