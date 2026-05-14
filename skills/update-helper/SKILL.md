@@ -1,6 +1,6 @@
 ---
 name: update-helper
-version: "5.0"
+version: "5.0.1"
 description: |
   Safe, high-efficiency code update protocol for AI agents. Use for editing,
   patching, debugging, refactoring, porting, or recovering code changes in real
@@ -9,10 +9,10 @@ description: |
   multiple agents/humans touched the repo, or a previous update broke behavior.
   Triggers: "fix this", "add feature", "why is this broken", "remove old UI",
   "refactor", "port this", "continue previous agent", "last patch broke it".
-  Original by PitroyTech. v5.0.
+  Original by PitroyTech. v5.0.1.
 ---
 
-# update-helper v5.0
+# update-helper v5.0.1
 
 Purpose: update existing code without code blindness. Search first, read bounded ranges, understand enough flow, patch narrowly, verify with syntax/tests and invariants, and keep a clean recovery path.
 
@@ -55,8 +55,10 @@ Use **Lite Workflow** only when all are true:
 
 - Small local change: 1 file, 1-3 functions/blocks.
 - Target is obvious and current code matches the request.
+- Target file is tracked in git or the edit is a disposable generated artifact.
 - No generated/source ambiguity.
 - No non-English/BOM/emoji encoding risk.
+- No untracked target file.
 - No previous failed patch in this session.
 - Verification command is clear.
 
@@ -67,10 +69,35 @@ Read and follow the **Full Protocol** when any are true:
 - User reports runtime/build error.
 - Previous patch broke something.
 - File contains Vietnamese/CJK/emoji/BOM-sensitive text.
+- Target file is untracked, outside git, or the repo state cannot recover the original.
 - Refactor, port, migration, or legacy cleanup.
 - User spec may be stale.
 - Another agent/human changed files.
 - You cannot explain data flow before editing.
+
+## Backup Decision Matrix
+
+Create a backup before writing whenever any row matches.
+
+| Case | Required backup |
+|---|---|
+| Tracked git file, tiny ASCII patch, clean target | `.bak2` optional, but allowed |
+| Untracked target file | session backup + `.bak2` mandatory |
+| Non-git workspace | session backup + `.bak2` mandatory |
+| File 1,000+ lines or unfamiliar | session backup + `.bak2` mandatory |
+| Generated output or source/dist pair | source `.bak2`; generated `.bak2` only while rebuilding |
+| Unicode/CJK/Vietnamese/emoji/BOM-sensitive file | session backup + `.bak2` mandatory, detect encoding first |
+| Multi-file UI/config/runtime cascade | `.bak2` for every written file; session backup for risky/source files |
+| Recovery after failed patch/build/runtime issue | do not write again until `.bak2` or session backup exists |
+
+Backup naming:
+
+```text
+file.ext.bak2                              # short-lived per write
+file.ext.bak.codex-session-YYYYMMDD-topic  # longer rollback point
+```
+
+Never overwrite another agent's session backup. If a backup path already exists, create a new topic suffix or timestamp suffix.
 
 ---
 
@@ -82,7 +109,7 @@ Skip nothing.
 2. Read bounded range around anchors, usually 40-160 lines.
 3. Identify owner function/module and direct callers.
 4. Say the intended edit in one sentence before writing.
-5. Backup if risk is non-trivial: create `.bak2`.
+5. Apply the Backup Decision Matrix. If any risk row matches, create required backups before writing.
 6. Patch narrowly.
 7. Run syntax/build/test check.
 8. Re-read edited range or search changed anchors.
@@ -205,9 +232,23 @@ Bad:
 I will tweak the dropdown.
 ```
 
-#### 5. Backup when risk is non-trivial
+#### 5. Backup before writing
 
-For Lite, backup is optional only when the patch is truly tiny and git can recover it. Create `.bak2` for Unicode, generated artifacts, large files, or any risky UI/config edit.
+For Lite, backup is optional only when the patch is truly tiny, the target is tracked in git, and git can recover the original. Otherwise follow the Backup Decision Matrix.
+
+Before backup, check whether the target is tracked:
+
+```powershell
+git ls-files --error-unmatch "file.ext"
+git status --short -- "file.ext"
+```
+
+```bash
+git ls-files --error-unmatch file.ext
+git status --short -- file.ext
+```
+
+Create `.bak2` before every risky write:
 
 Windows:
 
@@ -230,6 +271,8 @@ Copy-Item -LiteralPath "file.ext" -Destination "file.ext.bak.codex-session-YYYYM
 ```bash
 cp file.ext "file.ext.bak.codex-session-$(date +%Y%m%d)-topic"
 ```
+
+If the target is untracked in an otherwise git workspace, treat it like non-git for that file: create the session backup and report it.
 
 #### 6. Patch narrowly
 
@@ -335,13 +378,16 @@ Run before marking any patch done. Skip only items that provably don't apply.
 
 ```text
 [ ] Session backup exists for risky, non-git, generated, or encoding-sensitive modified files
-[ ] .bak2 created before this write (or git can recover trivially)
+[ ] .bak2 created before this write (or target is tracked, tiny, ASCII, and git can recover trivially)
+[ ] Untracked targets have a session backup before the first write
+[ ] Backup paths do not overwrite another agent's backup
 [ ] old_str / patch anchor copied from actual file, not user-quoted spec
 [ ] Anchor is unique in file (or context added until unique)
 [ ] Encoding verified for non-ASCII files; BOM/no-BOM preserved after write
 [ ] Re-read edited range — intended change is visible in file
 [ ] Syntax/build check passed
 [ ] .bak2 deleted after pass (or kept if failed)
+[ ] If backup files are accumulating, suggest cleanup only after test/check passes and user confirms behavior
 [ ] Invariant search: old ids/functions -> 0 hits (or documented exception)
 [ ] Cascade check: all callers, consumers, generated output updated
 [ ] Report includes: changed files, behavior, verification, backup state, remaining risk
@@ -360,7 +406,7 @@ Everything below is the full protocol. Use it for risky, unclear, multi-file, ge
 1. Search before reading. Read bounded ranges, not whole large files.
 2. Before writing: identify source-of-truth files versus generated outputs/reference files.
 3. Detect encoding and create a session backup before the first risky write.
-4. Create/refresh `.bak2` immediately before each write.
+4. Create/refresh `.bak2` immediately before each risky write.
 5. Preserve encoding exactly: UTF-8 BOM stays BOM, UTF-8 no-BOM stays no-BOM.
 6. Use stable ASCII anchors when terminal output may show mojibake.
 7. Patch render + handler + state + save/config + CSS together when UI controls change.
@@ -478,6 +524,21 @@ cp file.ext file.ext.bak2
 Copy-Item -LiteralPath "file.ext" -Destination "file.ext.bak2" -Force
 ```
 
+Before editing an untracked file, confirm and back it up:
+
+```powershell
+git status --short -- "file.ext"
+$sessionBak = "file.ext.bak.codex-session-YYYYMMDD-topic"
+Copy-Item -LiteralPath "file.ext" -Destination $sessionBak -Force
+Copy-Item -LiteralPath "file.ext" -Destination "file.ext.bak2" -Force
+```
+
+```bash
+git status --short -- file.ext
+cp file.ext "file.ext.bak.codex-session-$(date +%Y%m%d)-topic"
+cp file.ext file.ext.bak2
+```
+
 After success:
 
 ```bash
@@ -498,6 +559,7 @@ Always:
 - Delete `.bak2` only after syntax/build/tests and invariant searches pass.
 - If verification fails, restore `.bak2`, re-read the exact range, patch smaller, verify again.
 - Never delete the only known-good copy in a non-git workspace.
+- Never delete the only known-good copy of an untracked file in a git workspace.
 
 Git workspace cleanup:
 
@@ -518,6 +580,7 @@ Remove-Item -LiteralPath "file.ext.bak2" -Force
 Session backup cleanup is allowed only when all are true:
 
 - `git status --short` shows the intended changed files and no surprise target-file changes.
+- Every edited target is tracked, or the user explicitly allowed cleanup of untracked-file backups.
 - `git diff -- file.ext` is readable and contains the intended patch.
 - Verification passed.
 - The final answer reports changed files and backup state.
@@ -548,6 +611,26 @@ Remove-Item -LiteralPath "file.ext.bak2" -Force
 ```
 
 Keep the session backup by default in non-git workspaces. Delete it only when the user explicitly asks for cleanup or you created a newer verified archival backup. In the final answer, tell the user where the session backup is.
+
+Keep the session backup by default for untracked source/reference files too, even inside a git repo. Git cannot restore those originals.
+
+### Backup Cleanup Suggestion
+
+If multiple `.bak`, `.bak2`, or `*.bak.codex-session-*` files accumulate after a few sessions, do not silently delete them. Suggest cleanup to the user with a short list of candidates and the safety gate:
+
+```text
+I see several backup files from previous sessions. After verify/check passes and you confirm the current behavior is good, I can clean the old backups.
+```
+
+Only clean backup files when all are true:
+
+- Current source/build/test or project verify command has passed.
+- The user has tested or explicitly confirmed the current behavior is good enough to keep.
+- The candidate backup files are clearly backup artifacts, not source/reference files.
+- No backup is the only known-good copy for an untracked or non-git file.
+- The cleanup command targets explicit filenames or a reviewed candidate list, not a broad wildcard.
+
+Default stance: keep backups during active debugging; offer cleanup at handoff or after the user reports the feature is stable.
 
 Generated files:
 
@@ -683,16 +766,19 @@ Syntax error just introduced
   -> restore .bak2 -> re-read exact range -> smaller patch -> verify
 
 Build/test fails after patch
-  -> do not patch randomly -> trace failure to changed symbol -> targeted fix -> verify
+  -> keep backups -> do not patch randomly -> trace failure to changed symbol -> targeted fix -> verify
 
 Runtime wrong behavior, no error
-  -> backward trace from bad output -> state mutation -> handler/render path -> targeted fix
+  -> ensure session backup exists -> backward trace from bad output -> state mutation -> handler/render path -> targeted fix
 
 Encoding/mojibake corruption
   -> stop -> restore .bak2/session backup -> detect encoding -> rewrite with explicit encoding
 
 Multiple files broken
   -> list broken files -> restore each from its own backup -> redo blast radius before patching
+
+No backup exists for risky/untracked target
+  -> stop edits -> create backup from current file -> decide whether current file is already damaged -> ask if original cannot be reconstructed
 ```
 
 Rules:
@@ -700,6 +786,7 @@ Rules:
 - Do not add a second workaround on top of a broken first patch.
 - Re-read after restore.
 - If the same patch fails twice, stop and ask.
+- If a required backup was skipped, say so plainly in the final report and keep any new recovery backup created afterward.
 
 ---
 
@@ -738,7 +825,7 @@ Cascade checks:
 
 When joining an in-progress session, run these steps before patching:
 
-1. Verify session backup exists. Create immediately if missing.
+1. Verify session backup exists for every risky or untracked target. Create immediately if missing.
 2. Check for ARCHITECTURE_MAP or notes from previous agent. If found, read before touching code. If not, run Section 3 Structural Scan.
 3. Check for feature_map / knowledge index files:
    ```bash
@@ -757,6 +844,7 @@ Rules:
 - If a human changed a file, re-check anchors before applying pending patches.
 - Treat previous notes as hints, not truth. Verify against live code.
 - If worktree is dirty, do not revert unrelated changes.
+- If target files are untracked, git cannot recover them. Create session backups before the first write and keep them through final handoff.
 
 ---
 

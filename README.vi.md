@@ -6,7 +6,7 @@
 # 🦾 Update Helper v5 — by PitroyTech
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.0-blue.svg)](SKILL.md)
+[![Version](https://img.shields.io/badge/version-5.0.1-blue.svg)](SKILL.md)
 
 > **Cách an toàn và hiệu quả để AI agent cập nhật code có sẵn.**
 > Không patch mù. Không vỡ build. Không đốt context window.
@@ -282,6 +282,7 @@ README này là bản giới thiệu cho con người. `SKILL.md` là bản agen
 
 | Phiên bản | Thay đổi |
 |---|---|
+| **v5.0.1** | **Siết chặt kỷ luật sao lưu (Backup):** Bổ sung Backup Decision Matrix. Bắt buộc tạo session backup cho file untracked (xử lý như non-git). Cấm xóa bản sao lưu tốt duy nhất của file untracked. Bổ sung quy trình phục hồi khi quên backup. Agent chủ động đề xuất dọn dẹp backup rác sau các phiên làm việc dài (kèm điều kiện an toàn nghiêm ngặt). |
 | **v5.0** | Tách Lite/Full. Source-of-truth detection. Tool cheat sheet + chẩn đoán str_replace. Pre-submit checklist. UI removal checklist. Refactor/port protocol. Backup cleanup cho git và non-git. Kiểm tra feature_map/KI trong multi-agent. Ví dụ command dual-platform toàn bộ. |
 | **v4.0** | Self-contained. Encoding-safe write .NET. Multi-agent onboarding. Cascade analysis. Proactive bug hunt. |
 | **v3.4** | Phát hiện spec stale. Cải thiện BOM write pattern. |

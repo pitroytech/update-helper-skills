@@ -6,7 +6,7 @@
 # 🦾 Update Helper v5 — by PitroyTech
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.0-blue.svg)](SKILL.md)
+[![Version](https://img.shields.io/badge/version-5.0.1-blue.svg)](SKILL.md)
 
 > **The safe and efficient way for AI agents to update existing code.**
 > No blind patching. No broken builds. No burned context windows.
@@ -282,6 +282,7 @@ This README is for humans. `SKILL.md` is what the agent reads when doing real wo
 
 | Version | Changes |
 |---|---|
+| **v5.0.1** | **Strict Backup Discipline:** Added Backup Decision Matrix. Mandatory session backups for untracked files (treated as non-git). Prohibited deletion of the only known-good copy of untracked files. Added failure recovery steps for missing backups. Proactive backup cleanup suggestion with strict safety gates after long sessions. |
 | **v5.0** | Split Lite/Full. Source-of-truth detection. Tool cheat sheet + str_replace diagnostics. Pre-submit checklist. UI removal checklist. Refactor/port protocol. Backup cleanup for git and non-git. feature_map/KI check in multi-agent. Full dual-platform command examples. |
 | **v4.0** | Self-contained. Encoding-safe .NET write. Multi-agent onboarding. Cascade analysis. Proactive bug hunt. |
 | **v3.4** | Stale spec detection. Improved BOM write pattern. |
