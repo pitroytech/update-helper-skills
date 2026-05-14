@@ -218,6 +218,8 @@ Root cause: $acc.Username rỗng → ConvertMsa crash ✅
 
 Sau một phiên làm việc refactor và port tính năng phức tạp với hàng chục file thay đổi, chính một AI agent cấp cao đã đưa ra nhận xét về sự khác biệt khi có Update Helper:
 
+<img src="images/ai-review-proof.png" width="100%" alt="Review thực tế từ AI Agent về Update Helper">
+
 > *"Update Helper không làm mình **'code nhanh hơn'** nhiều, nhưng làm **ít phá hơn, verify chắc hơn, hồi phục tốt hơn.** Tăng khoảng 25-35% hiệu quả tổng thể."*
 > 
 > **Sự khác biệt cốt lõi:**
