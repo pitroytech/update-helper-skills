@@ -1,4 +1,4 @@
-﻿<p align="right">
+<p align="right">
   <b>🇺🇸 English</b> &nbsp;|&nbsp;
   <a href="README.vi.md">🇻🇳 Tiếng Việt</a>
 </p>
@@ -109,6 +109,35 @@ Result: right file, right layer, build pass, clean invariants, rollback path int
 | Broken patch | Stack another workaround | Restore `.bak2`, re-read range, patch smaller |
 | New agent joins | Read everything from the start | Read existing map/backup/KI → continue immediately |
 | Stale spec + new code | Apply old spec to refactored code | Compare spec vs reality, ask before merging |
+
+---
+
+## 🛠️ Installation
+
+### Antigravity / OpenClaw (skills folder)
+
+Clone the repo:
+
+```bash
+git clone https://github.com/pitroytech/update-helper-skills.git
+```
+
+Copy to your agent's skills directory:
+
+```bash
+xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
+```
+
+### Claude Code / Cursor / Cline (`.skill` file)
+
+1. Download [`update-helper.skill`](update-helper.skill) from this repo.
+2. Import into your agent's skill manager.
+
+### Manual (any agent)
+
+Copy the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) into your system prompt or `AGENTS.md`.
+
+Once loaded, the agent automatically activates the protocol on triggers: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
 
 ---
 
