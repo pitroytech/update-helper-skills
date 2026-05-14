@@ -89,6 +89,23 @@ xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\anti
 
 Copy the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) and paste it into your system prompt.
 
+### 🔄 Update to latest version
+
+**Via agent (recommended):**
+> "Update the update-helper skill from `https://github.com/pitroytech/update-helper-skills.git`"
+
+**Manual update:**
+```bash
+cd update-helper-skills
+git pull origin main
+```
+*Antigravity/OpenClaw:*
+```bash
+xcopy /E /I /Y update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
+```
+
+> **⚠️ Note:** After updating, start a **new conversation** for the agent to load the latest version. The current session may still use the cached old version.
+
 > **💡 Note:** Once loaded, the agent automatically activates the protocol on triggers like: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
 
 ---

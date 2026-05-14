@@ -89,6 +89,23 @@ xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\anti
 
 Copy toàn bộ nội dung của [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) và dán vào system prompt hoặc custom instructions của bạn.
 
+### 🔄 Cập nhật lên phiên bản mới nhất
+
+**Qua agent (khuyên dùng):**
+> "Cập nhật update-helper skill từ `https://github.com/pitroytech/update-helper-skills.git`"
+
+**Cập nhật thủ công:**
+```bash
+cd update-helper-skills
+git pull origin main
+```
+*Cho Antigravity/OpenClaw:*
+```bash
+xcopy /E /I /Y update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
+```
+
+> **⚠️ Lưu ý:** Sau khi cập nhật, hãy mở **phiên chat mới** để agent nạp đúng phiên bản mới nhất. Phiên hiện tại có thể vẫn dùng bản cũ đã cache.
+
 > **💡 Lưu ý:** Sau khi cài, agent sẽ tự động kích hoạt protocol khi gặp các lệnh: `fix this`, `xóa UI cũ`, `refactor`, `port sang chỗ khác`, `patch vừa nãy hỏng rồi`.
 
 ---
