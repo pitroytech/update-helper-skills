@@ -15,7 +15,7 @@
 
 ---
 
-## 🤔 What is the problem?
+## 🚨 What is the problem?
 
 AI agents write new code very fast. But updating existing code is much harder.
 
@@ -77,7 +77,7 @@ With Update Helper, the agent works completely differently:
 
 ---
 
-## 🔄 How does the agent work differently?
+## 🧬 How does the agent work differently?
 
 ```
 User: "fix this" / "remove old UI" / "last patch broke something"
@@ -270,7 +270,7 @@ Every rule in this skill exists because a session without it went wrong.
 
 ---
 
-## 🧩 What is in `SKILL.md`?
+## 🧠 What is in `SKILL.md`?
 
 This README is for humans. `SKILL.md` is what the agent reads when doing real work.
 

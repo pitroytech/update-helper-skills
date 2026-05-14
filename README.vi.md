@@ -258,7 +258,7 @@ Agent mạnh vẫn hưởng lợi — không phải vì không biết code, mà 
 
 ---
 
-## ✅ Đã kiểm chứng trên
+## 🧪 Đã kiểm chứng trên
 
 * Userscript 15,000+ dòng: provider routing, scheduler, model pool, floating settings UI
 * Công cụ dịch thuật dùng Gemini, Groq, OpenRouter, SambaNova
@@ -302,7 +302,7 @@ README này là bản giới thiệu cho con người. `SKILL.md` là bản agen
 
 ---
 
-## 📄 Giấy phép
+## ⚖️ Giấy phép
 
 MIT License. **Ý tưởng, thiết kế và nội dung © PitroyTech.**
 
