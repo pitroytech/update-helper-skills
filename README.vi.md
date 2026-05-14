@@ -8,10 +8,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.0.1-blue.svg)](SKILL.md)
 
-> **Cách an toàn và hiệu quả để AI agent cập nhật code có sẵn.**
-> Không patch mù. Không vỡ build. Không đốt context window.
+Cách an toàn và thông minh để AI agent cập nhật code có sẵn.
+Không patch mù. Không vỡ build. Không đốt context window.
 
-**Tìm trước. Đọc ít hơn. Patch gọn. Verify kỹ. Rollback sạch.**
+Tìm trước. Đọc ít hơn. Patch gọn. Verify kỹ. Rollback sạch.
 
 [🚨 Vấn đề](#-vấn-đề-là-gì) • [🛠️ Cài đặt](#️-cài-đặt) • [🧬 Agent Workflow](#-agent-làm-việc-khác-thế-nào) • [🎯 Tình huống](#-các-tình-huống-thực-tế) • [📸 Kết quả](#-kết-quả-thực-tế)
 

@@ -8,10 +8,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.0.1-blue.svg)](SKILL.md)
 
-> **The safe and efficient way for AI agents to update existing code.**
-> No blind patching. No broken builds. No burned context windows.
+The safe, smart way for AI agents to update existing code.
+No blind patching. No broken builds. No burned context windows.
 
-**Search first. Read less. Patch narrow. Verify thoroughly. Rollback clean.**
+Search first. Read less. Patch narrow. Verify hard. Rollback clean.
 
 [🚨 Problem](#-what-is-the-problem) • [🛠️ Installation](#️-installation) • [🧬 Agent Workflow](#-how-does-the-agent-work-differently) • [🎯 Scenarios](#-real-scenarios) • [📸 Results](#-real-results)
 
