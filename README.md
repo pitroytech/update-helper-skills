@@ -19,39 +19,39 @@
 
 AI agents are fast when they create new code. Updating existing code is harder.
 
-Real projects are not a blank page. They have old handlers, generated files, hidden state, cached data, local settings, encoding traps, and behavior that only makes sense after you follow the flow. Without a protocol, an agent can look busy for a long time and still patch the wrong thing.
+Real projects are full of hidden contracts: old state, UI handlers, config, cached data, build artifacts, encoding rules, test assumptions, and decisions made by people who are no longer in the room. Without a protocol, an agent can make a confident patch that looks right locally but breaks the actual workflow.
 
 Without Update Helper, agents often:
 
-❌ Chase the wrong layer: the API returned valid data, but the failure was in parsing, applying, caching, or UI refresh
+❌ Patch the wrong source of truth: edit the visible file, copied output, stale reference, generated artifact, or wrapper layer while the real behavior lives somewhere else
 
-❌ Patch generated output instead of the source file, so the fix disappears on the next build
+❌ Chase the wrong layer: the visible symptom is in one place, but the real failure is in input collection, transformation, validation, state update, rendering, persistence, or post-processing
+
+❌ Corrupt text-sensitive files by writing with the wrong command or encoding, silently damaging BOM, Vietnamese, CJK, emoji, or mixed-language content
+
+❌ Leave backup files, failed patch fragments, temporary copies, or half-updated artifacts scattered through the repo until nobody knows what is safe to delete
 
 ❌ Read 15,000-30,000 lines to find one function, burn the context window, and still miss the owner flow
 
-❌ Delete or rename UI without tracing render -> handler -> state -> config, leaving invisible broken behavior behind
+❌ Change UI without tracing render -> handler -> state -> config, leaving invisible broken behavior behind
 
-❌ Trust a user description or old plan after the code has already been refactored, then apply a stale fix to live logic
-
-❌ Write Vietnamese, CJK, emoji, or BOM-sensitive files with the wrong command and silently corrupt text
-
-❌ Leave backup files, failed patches, or half-updated artifacts scattered through the repo
+❌ Apply a stale mental model: old docs, old comments, old plans, previous agent notes, or remembered structure no longer match the current code
 
 With Update Helper, the agent works differently:
 
-✅ Identify the failure layer first: request sent, response received, parsed, applied, cached, rendered
+✅ Find the real source of truth before editing: source, generated output, config, runtime state, wrapper, or reference file
 
-✅ Detect source of truth: source vs dist, generated vs editable, config vs runtime state
-
-✅ Search anchors, then read only the 40-160 lines that matter instead of swallowing the whole repo
-
-✅ Map the flow before changing behavior: render -> handler -> state -> storage -> rebuild artifact
-
-✅ Compare the user's report with current code and treat drift as evidence, not noise
+✅ Locate the failure layer before patching: collect -> transform -> validate -> call -> parse -> apply -> persist -> render
 
 ✅ Preserve encoding and verify text-sensitive files after writing
 
 ✅ Keep a rollback path while patching, then clean backups only after verification passes
+
+✅ Search anchors, then read only the 40-160 lines that matter instead of swallowing the whole repo
+
+✅ Map behavior before deleting or renaming anything: render -> handler -> state -> storage -> verification
+
+✅ Compare assumptions against current code and treat drift as evidence, not noise
 
 ---
 
