@@ -21,21 +21,35 @@ AI agents are fast when they create new code. Updating existing code is harder.
 
 Real projects are full of hidden contracts: old state, UI handlers, config, cached data, build artifacts, encoding rules, test assumptions, and decisions made by people who are no longer in the room. Without a protocol, an agent can make a confident patch that looks right locally but breaks the actual workflow.
 
-Without Update Helper, agents often:
+Without a protocol, AI agents often:
 
-❌ Patch the wrong source of truth: edit the visible file, copied output, stale reference, generated artifact, or wrapper layer while the real behavior lives somewhere else
+1️⃣ Start patching before they understand what actually owns the behavior.
 
-❌ Chase the wrong layer: the visible symptom is in one place, but the real failure is in input collection, transformation, validation, state update, rendering, persistence, or post-processing
+2️⃣ Fix the wrong file, the wrong layer, or the wrong source of truth.
 
-❌ Corrupt text-sensitive files by writing with the wrong command or encoding, silently damaging BOM, Vietnamese, CJK, emoji, or mixed-language content
+3️⃣ Change source code but forget the step that makes the app actually run that change.
 
-❌ Leave backup files, failed patch fragments, temporary copies, or half-updated artifacts scattered through the repo until nobody knows what is safe to delete
+4️⃣ Make the UI look right while the button, handler, state, or storage behind it is still broken.
 
-❌ Read 15,000-30,000 lines to find one function, burn the context window, and still miss the owner flow
+5️⃣ Remove or rename something but leave old callers, config, styles, or status text behind.
 
-❌ Change UI without tracing render -> handler -> state -> config, leaving invisible broken behavior behind
+6️⃣ Fix one bug and quietly break another part of the workflow.
 
-❌ Apply a stale mental model: old docs, old comments, old plans, previous agent notes, or remembered structure no longer match the current code
+7️⃣ Refactor code and accidentally change behavior nobody asked to change.
+
+8️⃣ Trust stale docs, old comments, old plans, or an outdated mental model instead of the current code.
+
+9️⃣ Break the patch, then stack more workarounds on top of already broken code.
+
+🔟 Have no clean rollback path when the edit goes wrong.
+
+1️⃣1️⃣ Corrupt Vietnamese, CJK, emoji, or BOM-sensitive files with the wrong write method.
+
+1️⃣2️⃣ Read huge files just to find one small owner function, burning time, tokens, and attention.
+
+1️⃣3️⃣ Lose the thread when a new session starts or when multiple people touch the same worktree.
+
+1️⃣4️⃣ Say “done” without proving the changed code is the code that actually runs.
 
 With Update Helper, the agent works differently:
 

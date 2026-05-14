@@ -21,21 +21,35 @@ AI agent viết code mới rất nhanh. Nhưng cập nhật code có sẵn lại
 
 Các dự án thực tế chứa đầy những "khế ước ngầm" (hidden contracts): state cũ, các UI handler, file config, dữ liệu cache, build artifact, quy tắc encoding, giả định trong test, và những quyết định được đưa ra bởi những người không còn làm trong dự án. Nếu không có một giao thức chuẩn, agent có thể tự tin tung ra một bản patch trông có vẻ đúng ở hiện tại nhưng lại làm hỏng toàn bộ luồng làm việc thực tế.
 
-Nếu không có Update Helper, agent thường sẽ:
+Nếu không có một protocol rõ ràng, agent thường sẽ:
 
-❌ Patch nhầm nguồn chân lý (source of truth): sửa file đang nhìn thấy, file output được copy, reference lỗi thời, artifact tự sinh (generated), hoặc tầng wrapper trong khi hành vi thực sự lại nằm ở chỗ khác
+1️⃣ Lao vào patch trước khi hiểu thực sự luồng nào đang sở hữu hành vi đó.
 
-❌ Truy đuổi sai tầng: triệu chứng nhìn thấy ở một nơi, nhưng lỗi thực sự nằm ở khâu thu thập đầu vào (input collection), biến đổi dữ liệu, kiểm tra hợp lệ (validation), cập nhật state, render, lưu trữ (persistence), hoặc xử lý hậu kỳ (post-processing)
+2️⃣ Sửa sai file, sai tầng, hoặc sai nguồn chân lý (source of truth).
 
-❌ Làm hỏng các file nhạy cảm với văn bản do ghi bằng lệnh hoặc encoding sai, âm thầm phá hủy BOM, tiếng Việt, CJK, emoji, hoặc nội dung đa ngôn ngữ
+3️⃣ Sửa mã nguồn (source code) nhưng quên mất bước để ứng dụng thực sự chạy đoạn code mới đó.
 
-❌ Để lại các file backup, các đoạn patch thất bại, bản copy tạm thời, hoặc các artifact cập nhật dang dở rải rác khắp repo cho đến khi không ai biết cái nào an toàn để xóa
+4️⃣ Làm UI trông có vẻ đúng, nhưng nút bấm, handler, state hoặc lưu trữ phía sau vẫn bị hỏng.
 
-❌ Đọc từ 15.000 đến 30.000 dòng code chỉ để tìm một hàm, đốt cháy context window, và rốt cuộc vẫn bỏ lỡ luồng xử lý chính
+5️⃣ Xóa hoặc đổi tên một thứ gì đó nhưng để sót lại các nơi gọi cũ (callers), config, style, hoặc status text.
 
-❌ Sửa đổi UI mà không trace theo luồng render -> handler -> state -> config, để lại những hành vi lỗi ngầm bên trong
+6️⃣ Sửa được một bug nhưng âm thầm làm hỏng một phần khác của quy trình.
 
-❌ Áp dụng một "mental model" (mô hình tư duy) lỗi thời: tài liệu cũ, comment cũ, kế hoạch cũ, ghi chú của agent trước đó, hoặc cấu trúc nhớ trong đầu không còn khớp với code hiện tại
+7️⃣ Refactor code và vô tình thay đổi hành vi dù không ai yêu cầu (refactor drift).
+
+8️⃣ Tin vào tài liệu cũ, comment cũ, kế hoạch cũ, hoặc trí nhớ lỗi thời thay vì nhìn vào code hiện tại.
+
+9️⃣ Patch hỏng, rồi lại chồng thêm các bản vá lỗi (workaround) lên đoạn code đã nát.
+
+🔟 Không có con đường lùi (rollback) sạch sẽ khi bản sửa lỗi gặp sự cố.
+
+1️⃣1️⃣ Làm hỏng các file nhạy cảm với BOM, tiếng Việt, CJK, emoji do ghi file bằng lệnh sai.
+
+1️⃣2️⃣ Đọc những file khổng lồ chỉ để tìm một hàm nhỏ, gây tốn thời gian, token và sự tập trung.
+
+1️⃣3️⃣ Mất dấu luồng công việc khi bắt đầu session mới hoặc khi có nhiều người cùng đụng vào codebase.
+
+1️⃣4️⃣ Báo "xong" mà không chứng minh được đoạn code vừa sửa chính là đoạn code đang chạy thực tế.
 
 Với Update Helper, agent làm việc hoàn toàn khác:
 
