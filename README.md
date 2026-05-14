@@ -126,7 +126,9 @@ The agent will automatically clone the repo and copy it to the correct location 
 *(For manual setup via terminal)*:
 ```bash
 git clone https://github.com/pitroytech/update-helper-skills.git
-# Antigravity/OpenClaw:
+```
+*Antigravity/OpenClaw:*
+```bash
 xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
 ```
 

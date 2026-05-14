@@ -126,7 +126,9 @@ Agent sẽ tự động chạy lệnh clone và copy file vào đúng vị trí 
 *(Nếu muốn chạy lệnh thủ công bằng terminal)*:
 ```bash
 git clone https://github.com/pitroytech/update-helper-skills.git
-# Cho Antigravity/OpenClaw:
+```
+*Cho Antigravity/OpenClaw:*
+```bash
 xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
 ```
 
