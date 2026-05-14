@@ -21,7 +21,9 @@
 
 AI agent viết code mới rất nhanh. Nhưng cập nhật code có sẵn lại khó hơn nhiều.
 
-Các dự án thực tế chứa đầy những "khế ước ngầm": state cũ, UI handler, file config, dữ liệu cache, build artifact, quy tắc encoding, và những quyết định được đưa ra bởi những người không còn làm trong dự án. Nếu không có một giao thức chuẩn, agent có thể tự tin tung ra một bản patch trông có vẻ đúng nhưng lại làm hỏng toàn bộ luồng làm việc thực tế.
+> Mọi dự án thực tế đều ẩn chứa một mạng lưới chằng chịt mà chỉ nhìn qua sẽ không thấy: state cũ, UI handler, config, cache, build artifact, encoding rule — và những quyết định được đưa ra bởi người hay agent từ các phiên làm việc trước. Agent mới không thể biết hết ngay lập tức. Và đó là lúc một patch "trông có vẻ đúng" kéo sập cả luồng thực tế.
+>
+> **Update Helper giải quyết điều đó.** Bất kỳ agent nào vừa join vào dự án đều có thể đọc giao thức, map lại mạng lưới, và patch an toàn — không cần phụ thuộc vào ký ức của phiên trước.
 
 Nếu không có một protocol rõ ràng, agent thường sẽ:
 

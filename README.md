@@ -21,7 +21,9 @@
 
 AI agents write new code very fast. But updating existing code is much harder.
 
-Real projects are full of hidden contracts: legacy state, UI handlers, config files, cached data, build artifacts, encoding rules, and decisions made by people who no longer work on the project. Without a standard protocol, an agent can confidently ship a patch that looks correct but breaks the entire real workflow.
+> Every real project hides a tangled web that's invisible at first glance: legacy state, UI handlers, config, cache, build artifacts, encoding rules — and decisions made by developers or agents from sessions long past. A new agent can't possibly know all of it upfront. And that's exactly when a patch that *looks correct* brings down the entire workflow.
+>
+> **Update Helper fixes that.** Any agent joining mid-project can follow the protocol, map the hidden web, and patch safely — no memory of previous sessions required.
 
 Without a clear protocol, agents tend to:
 
