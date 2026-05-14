@@ -17,25 +17,41 @@
 
 ## 🤔 Vấn đề là gì?
 
-AI agent viết code mới thì nhanh. Nhưng tìm và sửa code có sẵn lại là câu chuyện khác.
+AI agent viết code mới rất nhanh. Nhưng cập nhật code có sẵn lại khó hơn nhiều.
 
-**Không có protocol, agent rất dễ:**
+Các dự án thực tế không phải là một trang giấy trắng. Chúng chứa những handler cũ, file tự sinh (generated files), state ẩn, dữ liệu cache, cài đặt cục bộ, cạm bẫy encoding, và những luồng logic mà bạn chỉ có thể hiểu sau khi lần theo đúng luồng. Nếu không có một giao thức chuẩn, agent có thể tỏ ra rất bận rộn trong một thời gian dài nhưng cuối cùng vẫn patch sai chỗ.
 
-* ❌ Đọc cả codebase lớn (15,000–30,000 dòng) để tìm một function → context window cháy, chưa patch gì đã hết token
-* ❌ Xóa một nút trên UI nhưng quên mất đoạn code phía sau vẫn đang lắng nghe sự kiện của nút đó → app chạy nhưng lỗi âm thầm
-* ❌ Sửa file build output thay vì file source gốc → test thấy OK, nhưng build lại là mất hết
-* ❌ API đã trả về dữ liệu đúng, nhưng agent vẫn báo lỗi và đi đổi model, đổi key → mất hàng giờ truy tìm sai chỗ
-* ❌ Ghi file bằng lệnh sai → BOM bị mất → tiếng Việt/CJK/emoji vỡ hết mà không có cảnh báo
-* ❌ Áp dụng mô tả của user vào code, nhưng code thực tế đã được refactor từ lâu → patch sai logic
+Nếu không có Update Helper, agent thường sẽ:
 
-**Với Update Helper:**
+❌ Truy đuổi sai tầng: API đã trả về dữ liệu đúng, nhưng lỗi thực sự nằm ở khâu parse, apply, lưu cache hoặc refresh UI
 
-* ✅ Tìm anchor → đọc đúng 40–160 dòng xung quanh, không đụng đến phần còn lại
-* ✅ Map toàn bộ render → handler → state → config → dist trước khi xóa bất cứ thứ gì
-* ✅ Phân biệt SOURCE vs GENERATED → chỉ patch source, rebuild artifact sau
-* ✅ Tách rõ 3 tầng: request gửi đi / response nhận về / xử lý sau khi nhận → tìm đúng chỗ fail
-* ✅ Kiểm tra BOM/encoding trước khi ghi → ghi đúng encoding → verify sau khi ghi
-* ✅ So sánh mô tả của user với code thực tế → hỏi trước khi apply nếu khác nhau
+❌ Patch thẳng vào file build output thay vì file source, khiến cho bản fix biến mất trong lần build tiếp theo
+
+❌ Đọc từ 15.000 đến 30.000 dòng code chỉ để tìm một hàm, đốt cháy context window, và rốt cuộc vẫn bỏ lỡ luồng xử lý chính
+
+❌ Xóa hoặc đổi tên UI mà không trace theo luồng render -> handler -> state -> config, để lại những hành vi lỗi ngầm bên trong
+
+❌ Tin tưởng hoàn toàn vào mô tả của người dùng hoặc một kế hoạch cũ khi code thực tế đã được refactor, rồi áp dụng một bản fix lỗi thời vào logic đang chạy
+
+❌ Ghi các file có tiếng Việt, CJK, emoji hoặc nhạy cảm với BOM bằng lệnh sai và âm thầm làm hỏng định dạng văn bản
+
+❌ Để lại các file backup, các bản patch thất bại, hoặc các artifact cập nhật dang dở rải rác khắp repo
+
+Với Update Helper, agent làm việc hoàn toàn khác:
+
+✅ Xác định đúng tầng bị lỗi trước tiên: request đã gửi, response đã nhận, đã parse, đã apply, đã lưu cache, hay đã render
+
+✅ Phân loại nguồn chân lý (source of truth): source vs dist, generated vs editable, config vs runtime state
+
+✅ Tìm các anchor (điểm neo), sau đó chỉ đọc 40-160 dòng thực sự quan trọng thay vì nuốt chửng cả repo
+
+✅ Map lại luồng dữ liệu trước khi thay đổi hành vi: render -> handler -> state -> storage -> rebuild artifact
+
+✅ So sánh báo cáo của người dùng với code hiện tại và coi sự sai lệch là bằng chứng, chứ không phải là nhiễu
+
+✅ Bảo toàn encoding và verify kỹ các file nhạy cảm với văn bản sau khi ghi
+
+✅ Giữ một đường lui (rollback path) trong khi patch, và chỉ dọn dẹp backup sau khi quá trình verify thành công
 
 ---
 

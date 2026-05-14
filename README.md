@@ -17,25 +17,41 @@
 
 ## 🤔 The Problem
 
-AI agents write new code fast. But finding and fixing existing code is a different story.
+AI agents are fast when they create new code. Updating existing code is harder.
 
-**Without a protocol, agents easily:**
+Real projects are not a blank page. They have old handlers, generated files, hidden state, cached data, local settings, encoding traps, and behavior that only makes sense after you follow the flow. Without a protocol, an agent can look busy for a long time and still patch the wrong thing.
 
-* ❌ Read entire large codebases (15,000–30,000 lines) to find one function → context window burned, no patch even attempted
-* ❌ Delete a UI button but forget the event handler still listening behind it → app runs but silently broken
-* ❌ Patch the build output instead of the source file → tests pass, next build wipes the fix
-* ❌ API returns valid data, but agent keeps swapping models and keys → hours wasted chasing the wrong layer
-* ❌ Write file with wrong encoding command → BOM lost → Vietnamese/CJK/emoji corrupted silently
-* ❌ Apply user's description to code that was refactored long ago → patch breaks live logic
+Without Update Helper, agents often:
 
-**With Update Helper:**
+❌ Chase the wrong layer: the API returned valid data, but the failure was in parsing, applying, caching, or UI refresh
 
-* ✅ Find anchor → read only 40–160 lines around it, leave the rest untouched
-* ✅ Map render → handler → state → config → dist before deleting anything
-* ✅ Distinguish SOURCE vs GENERATED → patch source only, rebuild artifact after
-* ✅ Separate 3 layers: request sent / response received / post-processing → pinpoint the real failure
-* ✅ Check BOM/encoding before writing → write with correct encoding → verify after
-* ✅ Compare user's description against actual code → ask before applying if they differ
+❌ Patch generated output instead of the source file, so the fix disappears on the next build
+
+❌ Read 15,000-30,000 lines to find one function, burn the context window, and still miss the owner flow
+
+❌ Delete or rename UI without tracing render -> handler -> state -> config, leaving invisible broken behavior behind
+
+❌ Trust a user description or old plan after the code has already been refactored, then apply a stale fix to live logic
+
+❌ Write Vietnamese, CJK, emoji, or BOM-sensitive files with the wrong command and silently corrupt text
+
+❌ Leave backup files, failed patches, or half-updated artifacts scattered through the repo
+
+With Update Helper, the agent works differently:
+
+✅ Identify the failure layer first: request sent, response received, parsed, applied, cached, rendered
+
+✅ Detect source of truth: source vs dist, generated vs editable, config vs runtime state
+
+✅ Search anchors, then read only the 40-160 lines that matter instead of swallowing the whole repo
+
+✅ Map the flow before changing behavior: render -> handler -> state -> storage -> rebuild artifact
+
+✅ Compare the user's report with current code and treat drift as evidence, not noise
+
+✅ Preserve encoding and verify text-sensitive files after writing
+
+✅ Keep a rollback path while patching, then clean backups only after verification passes
 
 ---
 
