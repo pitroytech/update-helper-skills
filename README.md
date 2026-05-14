@@ -114,34 +114,30 @@ Result: right file, right layer, build pass, clean invariants, rollback path int
 
 ## 🛠️ Installation
 
-### 1. Claude Desktop / Web (Built-in Skill Manager)
+### 1. Agentic IDEs & Local Agents (Cursor, Cline, Windsurf, Antigravity, OpenClaw)
 
-1. Download [`update-helper.skill`](update-helper.skill) from this repo.
-2. Import it into the **Skill Manager** in Claude Desktop or Claude Web.
+*The easiest way: just give the repo link to your AI agent and let it install itself.*
 
-### 2. Local AI Agents (Antigravity / OpenClaw)
+**Prompt:**
+> "Install the update-helper skill from `https://github.com/pitroytech/update-helper-skills.git`"
 
-These agents support a local, folder-based skills directory.
+The agent will automatically clone the repo and copy it to the correct location (e.g., `.cursorrules`, `AGENTS.md`, or its `skills/` folder).
 
-Clone the repo:
-
+*(For manual setup via terminal)*:
 ```bash
 git clone https://github.com/pitroytech/update-helper-skills.git
-```
-
-Copy to the agent's skills folder (example for Antigravity on Windows):
-
-```bash
+# Antigravity/OpenClaw:
 xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
 ```
 
-### 3. Agentic IDEs (Cursor / Cline / Windsurf)
+### 2. Claude Desktop / Web
 
-Copy the entire contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) and paste it into your `.cursorrules` or `AGENTS.md` file located at the root of your project.
+1. Download [`update-helper.skill`](update-helper.skill) from this repo.
+2. Import it into the built-in **Skill Manager**.
 
-### 4. Manual usage (Any other platform)
+### 3. Manual usage
 
-Paste the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) into your system prompt or custom instructions.
+Copy the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) and paste it into your system prompt.
 
 > **💡 Note:** Once loaded, the agent automatically activates the protocol on triggers like: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
 
