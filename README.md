@@ -9,41 +9,41 @@
 [![Version](https://img.shields.io/badge/version-5.0-blue.svg)](SKILL.md)
 
 > **The safe and efficient way for AI agents to update existing code.**
-> No blind patches. No broken builds. No context window burnout.
+> No blind patching. No broken builds. No burned context windows.
 
-**Search first. Read less. Patch narrow. Verify hard. Rollback clean.**
+**Search first. Read less. Patch narrow. Verify thoroughly. Rollback clean.**
 
 ---
 
-## 🤔 The Problem
+## 🤔 What is the problem?
 
-AI agents are fast when they create new code. Updating existing code is harder.
+AI agents write new code very fast. But updating existing code is much harder.
 
-Real projects are full of hidden contracts: old state, UI handlers, config, cached data, build artifacts, encoding rules, test assumptions, and decisions made by people who are no longer in the room. Without a protocol, an agent can make a confident patch that looks right locally but breaks the actual workflow.
+Real projects are full of hidden contracts: legacy state, UI handlers, config files, cached data, build artifacts, encoding rules, and decisions made by people who no longer work on the project. Without a standard protocol, an agent can confidently ship a patch that looks correct but breaks the entire real workflow.
 
-Without a protocol, AI agents often:
+Without a clear protocol, agents tend to:
 
 **— Patching without understanding —**
 
-① AI starts patching before understanding what actually owns the behavior → wrong place, wrong layer.
+① AI starts patching before knowing what actually controls the behavior → fixes the symptom, misses the cause.
 
-② AI reads the entire file just to find one function → burns tokens, slow, expensive.
+② AI reads the entire file just to find one thing to change → burns tokens, slow, expensive.
 
-③ New session starts → AI loses all context, no way to retrace the code flow already done → guesses or asks from scratch.
+③ New session starts → AI no longer knows what was done, which files were changed, or where things stopped → starts over or guesses.
 
 **— Right spot, not enough —**
 
-④ AI makes the UI look right → clicking the button does nothing because the handler, state, and config behind it were never touched.
+④ AI makes the UI look right → clicking the button does nothing because the logic behind it was never touched.
 
 ⑤ AI fixes one thing → something else crashes because it depended on what just changed.
 
-⑥ AI removes a feature → many other callers, configs, and styles still reference it, silently breaking things.
+⑥ AI removes a feature → many other places still call it, silently breaking things.
 
 **— Unintended behavior change —**
 
-⑦ AI refactors the code → behavior changes that nobody asked for.
+⑦ AI finishes a refactor → behavior changes that nobody asked for.
 
-⑧ AI trusts the snippet or description you gave it without checking the real current code → patches an old version, result is wrong.
+⑧ AI patches based on what you described, not what is actually running → applied to a version that has already changed since then.
 
 **— Every fix makes it worse —**
 
@@ -53,34 +53,34 @@ Without a protocol, AI agents often:
 
 **— Encoding —**
 
-⑪ File has Vietnamese / emoji → AI has no proper encoding workflow from the start → corrupted silently, cause unclear, no clear path to fix it fast.
+⑪ File has Vietnamese / emoji → AI has no proper encoding workflow from the start → corrupted silently, cause unclear, no clear restore path.
 
 **— No Verification —**
 
-⑫ AI says "done" → the file has a syntax error or a line mismatch from a shifted edit → AI doesn't know, doesn't check → the build output is broken.
+⑫ AI says "done" → the file has a syntax error or a line mismatch from a shifted edit → AI does not know, does not check → the build output is broken.
 
-With Update Helper, the agent works differently:
+With Update Helper, the agent works completely differently:
 
-✅ Find the real source of truth before editing: source, generated output, config, runtime state, wrapper, or reference file
+✅ Finds the real source of truth before patching: source file, generated output, config, runtime state, wrapper, or reference file
 
-✅ Locate the failure layer before patching: collect -> transform -> validate -> call -> parse -> apply -> persist -> render
+✅ Identifies the exact broken layer before patching: collect → transform → validate → call → parse → apply → persist → render
 
-✅ Preserve encoding and verify text-sensitive files after writing
+✅ Preserves encoding and carefully verifies text-sensitive files after writing
 
-✅ Keep a rollback path while patching, then clean backups only after verification passes
+✅ Keeps a rollback path while patching, and only cleans up backups after verification passes
 
-✅ Search anchors, then read only the 40-160 lines that matter instead of swallowing the whole repo
+✅ Finds anchors, then reads only the 40–160 lines that actually matter instead of loading the entire repo
 
-✅ Map behavior before deleting or renaming anything: render -> handler -> state -> storage -> verification
+✅ Maps all behavior before deleting or renaming anything: render → handler → state → storage → verification
 
-✅ Compare assumptions against current code and treat drift as evidence, not noise
+✅ Compares assumptions against current code and treats divergence as evidence, not noise
 
 ---
 
-## 🔄 How Does It Change Agent Behavior?
+## 🔄 How does the agent work differently?
 
 ```
-User: "fix this" / "remove old UI" / "last patch broke it"
+User: "fix this" / "remove old UI" / "last patch broke something"
         ↓
 Update Helper
         ↓
@@ -90,191 +90,191 @@ Update Helper
 
 [Full]  + classify source-of-truth → trace data flow →
         assess blast radius → write with correct encoding →
-        UI symmetry checklist → cleanup backups
+        UI symmetry checklist → cleanup backup
         ↓
-Result: right file, right flow, build passes, invariants clean, rollback path preserved
+Result: right file, right layer, build pass, clean invariants, rollback path intact
 ```
 
-**Lite** — small, clear tasks: 1 file, no encoding risk, no generated/source confusion.
+**Lite** — small, clear task, 1 file, no encoding risk, no generated/source confusion.
 
-**Full Protocol** — large files, multi-module changes, encoding risk, refactors, potentially stale specs, or repos touched by other agents/humans.
+**Full Protocol** — large file, multiple modules, encoding risk, refactor, potentially stale spec, or another agent/human has already touched the repo.
 
-| Case | Agent without skill | With Update Helper |
+| Situation | What agents usually do | With Update Helper |
 |---|---|---|
-| UI bug | Fix what's visible | Trace render → handler → state → config before patching |
-| Provider/API bug | Swap model, swap key | Separate request / response / post-processing → find real failure |
-| Generated file | Edit the running file | Find source-of-truth, patch source, rebuild output |
-| Large file | Read entire file | Search anchor → read bounded range |
-| Vietnamese/CJK file | Replace with convenient tool | Detect BOM before writing, verify after writing |
+| UI bug | Fix what is visible | Trace render → handler → state → config before patching |
+| Provider/API bug | Swap model, swap key | Separate request / response / post-processing → find the actual failure point |
+| Generated file | Edit the running file directly | Find source-of-truth, patch source, rebuild output |
+| Large file | Read the whole file | Search anchor → read bounded range |
+| Vietnamese/CJK file | Replace with whatever tool is handy | Detect BOM before writing, verify after writing |
 | Broken patch | Stack another workaround | Restore `.bak2`, re-read range, patch smaller |
-| New agent joins | Re-read everything from scratch | Read existing map/backup/KI → continue immediately |
-| Stale spec + new code | Apply stale spec to refactored code | Compare spec vs actual, ask before merge |
+| New agent joins | Read everything from the start | Read existing map/backup/KI → continue immediately |
+| Stale spec + new code | Apply old spec to refactored code | Compare spec vs reality, ask before merging |
 
 ---
 
-## 🎯 Real-World Scenarios
+## 🎯 Real scenarios
 
-### Scenario 1: Removing an old UI feature
+### Scenario 1: Remove an old UI feature
 
-> Task: remove Batch tuning controls from the API settings page.
+> Task: remove the Batch tuning group from the API settings page.
 
-Agent without skill only deletes the visible HTML. Result: inputs disappear on screen, but backend code still reads old values, causing save errors.
+An agent without the skill only removes the visible HTML. Result: the input disappears on screen, but the code behind it still reads the old value, causing errors when saving settings.
 
-Agent with Update Helper runs the full checklist:
+An agent with Update Helper runs the full checklist:
 
 ```
 Search: batch-gemini, batch-zhipu, api-advanced
-Read  : render block, CSS, Gemini handler, Zhipu handler, generic config save
-Patch : remove visible controls + default buttons + save reads + null-crash handlers
+Read:   render block, CSS, Gemini handler, Zhipu handler, shared config save function
+Patch:  remove visible control + default buttons + save reads + null-crash handlers
 Verify: npm run verify
-Check : rg "batch-gemini|batch-zhipu|api-advanced" src dist → 0 results
+Check:  rg "batch-gemini|batch-zhipu|api-advanced" src dist → 0 results
 ```
 
-### Scenario 2: Patching the wrong file (output vs source)
+### Scenario 2: Patching the output file instead of the source
 
-> Task: changed settings but userscript doesn't reflect the change.
+> Task: change a setting but the userscript does not reflect the change.
 
-Agent without skill finds the running file and edits it directly. Tests pass. Next build — fix gone.
+An agent without the skill finds the running file and edits it directly. Tests pass. Rebuild — everything is gone.
 
-Agent with Update Helper finds the build script first, classifies files:
+An agent with Update Helper finds the build script first and classifies the files:
 
 ```
-src/module.js          → SOURCE — this is the file to patch
-dist/app.user.js       → GENERATED — build output, don't edit directly
-src/app.user.js        → REFERENCE — old monolith, leave untouched
+src/module.js          → SOURCE — this is the file to edit
+dist/app.user.js       → GENERATED — build output, do not edit directly
+src/app.user.js        → REFERENCE — old monolith, do not touch
 
-→ Patch source → run npm run build → verify dist
+→ Patch source → run npm run build → inspect dist
 ```
 
 ### Scenario 3: Dropdown loses models after testing a provider
 
-> Task: tested Groq then ran RACE with Gemini, dropdown now only shows Gemini models.
+> Task: after testing Groq then running RACE with Gemini, the dropdown only shows Gemini models.
 
-Agent without skill jumps to fix dropdown labels. No effect because labels aren't the cause.
+An agent without the skill edits the dropdown labels. No effect — labels are not the cause.
 
-Agent with Update Helper traces the data flow:
+An agent with Update Helper traces the data flow:
 
 ```
 RACE → providerModelPool[provider] → sync flat modelPool → dropdown → scheduler
 
-→ Found: RACE overwrites entire modelPool instead of updating only that provider
-→ Correct fix: RACE updates providerModelPool[provider], dropdown hydrates from aggregate store
+→ Found: RACE was overwriting the entire modelPool instead of only updating that provider
+→ Fix: RACE only updates providerModelPool[provider], dropdown hydrates from the aggregate store
 ```
 
-### Scenario 4: API returns valid data but agent still reports failure
+### Scenario 4: API returns valid data but still reports failure
 
-> Task: logs show valid response, but scheduler still reports failed.
+> Task: logs show a valid response, but the scheduler still reports failed.
 
-Agent without skill keeps swapping models, testing keys, switching providers. Doesn't solve it.
+An agent without the skill keeps swapping models, testing keys, switching providers. Nothing works.
 
-Agent with Update Helper separates 3 layers:
+An agent with Update Helper separates three layers:
 
 ```
-Request sent?         → Yes ✅
-Response received?    → Yes, valid JSON ✅
-Post-processing?      → Crash at apply translation step ❌
+Request sent?        → Yes ✅
+Response received?   → Yes, valid JSON ✅
+Post-processing?     → Crash at apply translation step ❌
 
-→ Root cause: apply function was deleted in a previous refactor, call site not updated
+→ Root cause: the apply function was deleted in a previous refactor, call site never updated
 ```
 
 ---
 
-## 📸 Real Results
+## 📸 Real results
 
-### ❌ Before — agent without skill (12 consecutive failed searches)
+### ❌ Before — agent without the skill (12 failed searches in a row)
 
-<img src="images/before-12-searches.png" width="33%" alt="Agent without skill: 12 consecutive failed searches">
+<img src="images/before-12-searches.png" width="33%" alt="Agent without skill: 12 failed searches">
 
-Agent using `grep_search` can't handle a 14,000-line UTF-8 BOM file. Conclusion: *"file has encoding issues, let's try something else"* → random guessing, token waste.
+The agent used `grep_search` which could not handle a 14,000-line UTF-8 BOM file. Conclusion: *"file has an encoding issue, trying something else"* → guessing, burning tokens.
 
 ### ✅ After — agent with Update Helper (3 searches, root cause found)
 
-<img src="images/after-trace-success.png" width="33%" alt="Agent with skill: finds bug immediately">
+<img src="images/after-trace-success.png" width="33%" alt="Agent with skill: bug found immediately">
 
 Detailed Data Flow Tracing process:
 
 <img src="images/comparison-table.png" width="33%" alt="Detailed Data Flow Tracing process">
 
 ```
-Find "Reset-LocalAccountPassword"     → line 6732  ✅
-Trace caller                          → line 12273 ✅
-Root cause: $acc.Username is empty → ConvertMsa crash ✅
+Search "Reset-LocalAccountPassword"  → line 6732  ✅
+Trace caller                         → line 12273 ✅
+Root cause: $acc.Username empty → ConvertMsa crash ✅
 ```
 
-### 📋 Quick Comparison
+### 📋 Quick comparison
 
 | | Without skill | With Update Helper |
 |---|---|---|
 | Tool | `grep_search` (IDE) | `Select-String` (PowerShell native) |
-| Searches | 12+ FAILED | 3 targeted → bug found |
+| Searches | 12+ failed | 3 targeted → bug found |
 | Method | Random guessing | Search → Read → Understand → Trace |
 | Result | "encoding issue" | Root cause + 3 bugs identified |
-| Encoding | Can't handle UTF-8 BOM | BOM preserved correctly |
+| Encoding | Cannot handle UTF-8 BOM | BOM preserved correctly |
 
 ---
 
-## 💰 Real Token Savings
+## 💰 Real token savings
 
 <img src="images/token-savings.png" width="33%" alt="Token savings estimate with Update Helper v5">
 
 | Task type | Without protocol | With Update Helper |
 |---|---|---|
-| JS file 500KB+ | Easily 100k–180k tokens | Anchor + bounded range → ~15k–30k tokens |
-| UI removal | 2–4 rounds (missed handlers) | 1 round with full checklist |
-| Source/dist confusion | Patch wrong file, test pass, build loses fix | Classify first → patch right file |
-| Encoding corruption | May lose entire session to recover | Detect first, clear restore path |
-| Multi-agent handoff | Next agent re-reads from scratch | Continue from existing map/backup |
+| 500KB+ JS file | Easily 100k–180k tokens | Anchor + bounded range → ~15k–30k tokens |
+| UI removal | 2–4 rounds due to missed handlers | 1 round if checklist is complete |
+| Source/dist confusion | Patch wrong file, test passes, fix lost on rebuild | Classify first → patch the right file |
+| Encoding corruption | May lose the entire session recovering | Detect first, clear restore path |
+| Multi-agent handoff | Next agent reads everything from scratch | Continue from existing map/backup |
 
-Strong agents still benefit — not because they can't code, but because the protocol prevents small mistakes that cost big.
+Strong models still benefit — not because they don't know code, but because the protocol keeps them from small mistakes that are expensive to undo.
 
 ---
 
-## ✅ Battle-Tested On
+## ✅ Proven on
 
-* Userscripts 15,000+ lines: provider routing, scheduler, model pool, floating settings UI
-* Translation tools using Gemini, Groq, OpenRouter, SambaNova
+* 15,000+ line userscript: provider routing, scheduler, model pool, floating settings UI
+* Translation tool using Gemini, Groq, OpenRouter, SambaNova
 * PowerShell/JS files with Vietnamese, CJK, emoji — UTF-8 BOM and no-BOM
-* Repos with `src/`, `dist/`, generated userscripts, stale monolith references
+* Repos with `src/`, `dist/`, generated userscript, and old monolith reference
 * Multi-agent sessions: one agent maps, one patches, one recovers
 
 Every rule in this skill exists because a session without it went wrong.
 
 ---
 
-## 🧩 What's Inside `SKILL.md`?
+## 🧩 What is in `SKILL.md`?
 
-This README is the introduction for humans. `SKILL.md` is what the agent reads at work.
+This README is for humans. `SKILL.md` is what the agent reads when doing real work.
 
 | Feature | Description |
 |---|---|
-| **Tool Cheat Sheet** | Quick-reference command table, dual-platform: Linux/Claude Code and Windows/PowerShell |
-| **Lite Workflow** | 9 steps for clear tasks, with command examples for each step |
-| **Full Protocol** | For large files, multi-module, encoding risk, refactors, or broken previous patches |
-| **Source-of-Truth Detection** | Classify source, generated output, and stale references |
-| **Pre-Submit Checklist** | 11 mandatory checks before claiming a patch is done |
+| **Tool Cheat Sheet** | Quick dual-platform command reference: Linux/Claude Code and Windows/PowerShell |
+| **Lite Workflow** | 9 steps for clear tasks, with example commands at each step |
+| **Full Protocol** | For large files, multiple modules, encoding risk, refactor, or a previously broken patch |
+| **Source-of-Truth Detection** | Distinguish source, generated output, and old reference files |
+| **Pre-Submit Checklist** | 11 mandatory checks before reporting a patch as done |
 | **UI Removal Checklist** | Render, CSS, handler, config, status, consumers, dist |
 | **Refactor & Port Protocol** | Leaf → caller → parent → entry point; 5-step port workflow |
-| **Backup Cleanup** | Separate protocols for git workspaces and non-git workspaces |
+| **Backup Cleanup** | Separate process for git workspaces and non-git workspaces |
 | **Failure Recovery** | Restore `.bak2`, re-read range, patch smaller |
-| **Multi-Agent Handoff** | Read map/backup/KI before continuing, never overwrite backups |
+| **Multi-Agent Handoff** | Read map/backup/KI before continuing, do not overwrite backups |
 | **Final Report** | Changed files, behavior, verification, backup state, remaining risk |
 
 ---
 
-## 🔖 Version History
+## 🔖 Version history
 
 | Version | Changes |
 |---|---|
-| **v5.0** | Lite/Full split. Source-of-truth detection. Tool cheat sheet + str_replace diagnostics. Pre-submit checklist. UI removal checklist. Refactor/port protocol. Backup cleanup for git and non-git. Feature_map/KI check in multi-agent. Dual-platform command examples throughout. |
-| v4.0 | Self-contained. Encoding-safe write .NET. Multi-agent onboarding. Cascade analysis. Proactive bug hunt. |
-| v3.4 | Stale-spec detection. Improved BOM write pattern. |
+| **v5.0** | Split Lite/Full. Source-of-truth detection. Tool cheat sheet + str_replace diagnostics. Pre-submit checklist. UI removal checklist. Refactor/port protocol. Backup cleanup for git and non-git. feature_map/KI check in multi-agent. Full dual-platform command examples. |
+| v4.0 | Self-contained. Encoding-safe .NET write. Multi-agent onboarding. Cascade analysis. Proactive bug hunt. |
+| v3.4 | Stale spec detection. Improved BOM write pattern. |
 | v3.3 | Data-flow tracing. Architecture summary. JS UI patterns. |
-| v3.x | Initial public releases. |
+| v3.x | First public releases. |
 
 ---
 
 ## 📄 License
 
-MIT License. **Original concept, design, and all content © PitroyTech.**
+MIT License. **Concept, design, and content © PitroyTech.**
 
 Built from real sessions — not from theory about how agents should work.

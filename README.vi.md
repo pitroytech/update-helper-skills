@@ -19,21 +19,21 @@
 
 AI agent viết code mới rất nhanh. Nhưng cập nhật code có sẵn lại khó hơn nhiều.
 
-Các dự án thực tế chứa đầy những "khế ước ngầm" (hidden contracts): state cũ, các UI handler, file config, dữ liệu cache, build artifact, quy tắc encoding, giả định trong test, và những quyết định được đưa ra bởi những người không còn làm trong dự án. Nếu không có một giao thức chuẩn, agent có thể tự tin tung ra một bản patch trông có vẻ đúng ở hiện tại nhưng lại làm hỏng toàn bộ luồng làm việc thực tế.
+Các dự án thực tế chứa đầy những "khế ước ngầm": state cũ, UI handler, file config, dữ liệu cache, build artifact, quy tắc encoding, và những quyết định được đưa ra bởi những người không còn làm trong dự án. Nếu không có một giao thức chuẩn, agent có thể tự tin tung ra một bản patch trông có vẻ đúng nhưng lại làm hỏng toàn bộ luồng làm việc thực tế.
 
 Nếu không có một protocol rõ ràng, agent thường sẽ:
 
 **— AI không hiểu trước khi sửa —**
 
-① AI lao vào sửa trước khi hiểu ai thật sự điều khiển behavior đó → vá nhầm chỗ, nhầm tầng.
+① AI sửa trước khi biết đâu là chỗ thực sự quyết định behavior → vá đúng triệu chứng, sai nguyên nhân.
 
 ② AI đọc cả file chỉ để tìm một chỗ cần sửa → cháy token, chậm, tốn tiền.
 
-③ Mở session mới → AI mất toàn bộ context, không có công cụ truy lại luồng code đã làm → đoán mò hoặc hỏi lại từ đầu.
+③ Mở session mới → AI không còn biết đã làm gì, file nào đã sửa, đang dừng ở đâu → làm lại từ đầu hoặc đoán mò.
 
 **— Sửa đúng chỗ, nhưng không đủ —**
 
-④ AI sửa UI trông đúng → bấm vào không có gì xảy ra vì handler, state, config phía sau chưa được đụng tới.
+④ AI sửa UI trông đúng → bấm vào không có gì xảy ra vì phần logic phía sau chưa được đụng tới.
 
 ⑤ AI sửa chỗ này → chỗ khác crash vì phụ thuộc vào thứ vừa thay đổi mà AI không truy ra.
 
@@ -43,7 +43,7 @@ Nếu không có một protocol rõ ràng, agent thường sẽ:
 
 ⑦ AI refactor xong → behavior thay đổi mà không ai yêu cầu.
 
-⑧ AI tin vào đoạn code hoặc mô tả bạn đưa mà không kiểm tra code thật → sửa vào phiên bản cũ, kết quả sai.
+⑧ AI sửa theo những gì bạn mô tả, không theo code đang thật sự chạy → áp nhầm vào phiên bản đã thay đổi từ lúc đó.
 
 **— Càng sửa càng hỏng —**
 
@@ -53,7 +53,7 @@ Nếu không có một protocol rõ ràng, agent thường sẽ:
 
 **— Vấn đề Encoding —**
 
-⑪ File có tiếng Việt / emoji → AI không có quy trình xử lý encoding đúng từ đầu → hỏng âm thầm, không rõ nguyên nhân, không biết cách sửa nhanh nhất.
+⑪ File có tiếng Việt / emoji → AI không có quy trình xử lý encoding đúng từ đầu → hỏng âm thầm, không rõ nguyên nhân, không có đường restore rõ ràng.
 
 **— Không Verify —**
 
