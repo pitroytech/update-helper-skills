@@ -23,33 +23,41 @@ Real projects are full of hidden contracts: old state, UI handlers, config, cach
 
 Without a protocol, AI agents often:
 
-1️⃣ Start patching before they understand what actually owns the behavior.
+**— Patching without understanding —**
 
-2️⃣ Fix the wrong file, the wrong layer, or the wrong source of truth.
+① AI starts patching before understanding what actually owns the behavior → wrong place, wrong layer.
 
-3️⃣ Change source code but forget the step that makes the app actually run that change.
+② AI reads the entire file just to find one function → burns tokens, slow, expensive.
 
-4️⃣ Make the UI look right while the button, handler, state, or storage behind it is still broken.
+③ New session starts → AI loses all context, no way to retrace the code flow already done → guesses or asks from scratch.
 
-5️⃣ Remove or rename something but leave old callers, config, styles, or status text behind.
+**— Right spot, not enough —**
 
-6️⃣ Fix one bug and quietly break another part of the workflow.
+④ AI makes the UI look right → clicking the button does nothing because the handler, state, and config behind it were never touched.
 
-7️⃣ Refactor code and accidentally change behavior nobody asked to change.
+⑤ AI fixes one thing → something else crashes because it depended on what just changed.
 
-8️⃣ Trust stale docs, old comments, old plans, or an outdated mental model instead of the current code.
+⑥ AI removes a feature → many other callers, configs, and styles still reference it, silently breaking things.
 
-9️⃣ Break the patch, then stack more workarounds on top of already broken code.
+**— Unintended behavior change —**
 
-🔟 Have no clean rollback path when the edit goes wrong.
+⑦ AI refactors the code → behavior changes that nobody asked for.
 
-1️⃣1️⃣ Corrupt Vietnamese, CJK, emoji, or BOM-sensitive files with the wrong write method.
+⑧ AI trusts the snippet or description you gave it without checking the real current code → patches an old version, result is wrong.
 
-1️⃣2️⃣ Read huge files just to find one small owner function, burning time, tokens, and attention.
+**— Every fix makes it worse —**
 
-1️⃣3️⃣ Lose the thread when a new session starts or when multiple people touch the same worktree.
+⑨ One fix fails → AI stacks another fix on top of already broken code → drifts further from the original.
 
-1️⃣4️⃣ Say “done” without proving the changed code is the code that actually runs.
+⑩ Something breaks → nothing to rollback to, no clean version to compare against and start over.
+
+**— Encoding —**
+
+⑪ File has Vietnamese / emoji → AI has no proper encoding workflow from the start → corrupted silently, cause unclear, no clear path to fix it fast.
+
+**— No Verification —**
+
+⑫ AI says "done" → the file has a syntax error or a line mismatch from a shifted edit → AI doesn't know, doesn't check → the build output is broken.
 
 With Update Helper, the agent works differently:
 

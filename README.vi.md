@@ -23,33 +23,41 @@ Các dự án thực tế chứa đầy những "khế ước ngầm" (hidden co
 
 Nếu không có một protocol rõ ràng, agent thường sẽ:
 
-1️⃣ Lao vào patch trước khi hiểu thực sự luồng nào đang sở hữu hành vi đó.
+**— AI không hiểu trước khi sửa —**
 
-2️⃣ Sửa sai file, sai tầng, hoặc sai nguồn chân lý (source of truth).
+① AI lao vào sửa trước khi hiểu ai thật sự điều khiển behavior đó → vá nhầm chỗ, nhầm tầng.
 
-3️⃣ Sửa mã nguồn (source code) nhưng quên mất bước để ứng dụng thực sự chạy đoạn code mới đó.
+② AI đọc cả file chỉ để tìm một chỗ cần sửa → cháy token, chậm, tốn tiền.
 
-4️⃣ Làm UI trông có vẻ đúng, nhưng nút bấm, handler, state hoặc lưu trữ phía sau vẫn bị hỏng.
+③ Mở session mới → AI mất toàn bộ context, không có công cụ truy lại luồng code đã làm → đoán mò hoặc hỏi lại từ đầu.
 
-5️⃣ Xóa hoặc đổi tên một thứ gì đó nhưng để sót lại các nơi gọi cũ (callers), config, style, hoặc status text.
+**— Sửa đúng chỗ, nhưng không đủ —**
 
-6️⃣ Sửa được một bug nhưng âm thầm làm hỏng một phần khác của quy trình.
+④ AI sửa UI trông đúng → bấm vào không có gì xảy ra vì handler, state, config phía sau chưa được đụng tới.
 
-7️⃣ Refactor code và vô tình thay đổi hành vi dù không ai yêu cầu (refactor drift).
+⑤ AI sửa chỗ này → chỗ khác crash vì phụ thuộc vào thứ vừa thay đổi mà AI không truy ra.
 
-8️⃣ Tin vào tài liệu cũ, comment cũ, kế hoạch cũ, hoặc trí nhớ lỗi thời thay vì nhìn vào code hiện tại.
+⑥ AI xóa một tính năng → còn sót nhiều chỗ khác vẫn gọi đến nó, âm thầm gây lỗi.
 
-9️⃣ Patch hỏng, rồi lại chồng thêm các bản vá lỗi (workaround) lên đoạn code đã nát.
+**— Behavior thay đổi ngoài ý muốn —**
 
-🔟 Không có con đường lùi (rollback) sạch sẽ khi bản sửa lỗi gặp sự cố.
+⑦ AI refactor xong → behavior thay đổi mà không ai yêu cầu.
 
-1️⃣1️⃣ Làm hỏng các file nhạy cảm với BOM, tiếng Việt, CJK, emoji do ghi file bằng lệnh sai.
+⑧ AI tin vào đoạn code hoặc mô tả bạn đưa mà không kiểm tra code thật → sửa vào phiên bản cũ, kết quả sai.
 
-1️⃣2️⃣ Đọc những file khổng lồ chỉ để tìm một hàm nhỏ, gây tốn thời gian, token và sự tập trung.
+**— Càng sửa càng hỏng —**
 
-1️⃣3️⃣ Mất dấu luồng công việc khi bắt đầu session mới hoặc khi có nhiều người cùng đụng vào codebase.
+⑨ Sửa một lần không xong → AI chồng thêm fix lên fix đã hỏng → càng sửa càng xa code gốc.
 
-1️⃣4️⃣ Báo "xong" mà không chứng minh được đoạn code vừa sửa chính là đoạn code đang chạy thực tế.
+⑩ Sửa hỏng rồi → không có gì để rollback về, không có bản cũ để đối chiếu và làm lại.
+
+**— Vấn đề Encoding —**
+
+⑪ File có tiếng Việt / emoji → AI không có quy trình xử lý encoding đúng từ đầu → hỏng âm thầm, không rõ nguyên nhân, không biết cách sửa nhanh nhất.
+
+**— Không Verify —**
+
+⑫ AI báo "done" → thực ra file đang lỗi syntax hoặc sửa nhầm dòng do đánh số lệch → AI không tự biết, không tự kiểm tra → file build ra hỏng bét.
 
 Với Update Helper, agent làm việc hoàn toàn khác:
 
