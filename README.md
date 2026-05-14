@@ -114,7 +114,14 @@ Result: right file, right layer, build pass, clean invariants, rollback path int
 
 ## 🛠️ Installation
 
-### Antigravity / OpenClaw (skills folder)
+### 1. Claude Desktop / Web (Built-in Skill Manager)
+
+1. Download [`update-helper.skill`](update-helper.skill) from this repo.
+2. Import it into the **Skill Manager** in Claude Desktop or Claude Web.
+
+### 2. Local AI Agents (Antigravity / OpenClaw)
+
+These agents support a local, folder-based skills directory.
 
 Clone the repo:
 
@@ -122,22 +129,21 @@ Clone the repo:
 git clone https://github.com/pitroytech/update-helper-skills.git
 ```
 
-Copy to your agent's skills directory:
+Copy to the agent's skills folder (example for Antigravity on Windows):
 
 ```bash
 xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
 ```
 
-### Claude Code / Cursor / Cline (`.skill` file)
+### 3. Agentic IDEs (Cursor / Cline / Windsurf)
 
-1. Download [`update-helper.skill`](update-helper.skill) from this repo.
-2. Import into your agent's skill manager.
+Copy the entire contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) and paste it into your `.cursorrules` or `AGENTS.md` file located at the root of your project.
 
-### Manual (any agent)
+### 4. Manual usage (Any other platform)
 
-Copy the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) into your system prompt or `AGENTS.md`.
+Paste the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) into your system prompt or custom instructions.
 
-Once loaded, the agent automatically activates the protocol on triggers: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
+> **💡 Note:** Once loaded, the agent automatically activates the protocol on triggers like: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
 
 ---
 
