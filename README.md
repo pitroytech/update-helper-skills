@@ -214,6 +214,19 @@ Root cause: $acc.Username empty → ConvertMsa crash ✅
 | **Result** | "encoding issue" | Root cause + 3 bugs identified |
 | **Encoding** | Cannot handle UTF-8 BOM | BOM preserved correctly |
 
+### 🗣️ The AI's Own Review (GPT-5.5 class)
+
+After a complex refactoring and porting session spanning dozens of files, an advanced AI agent gave this exact feedback on working with Update Helper:
+
+> *"Update Helper does not make me **'code faster'**, but it makes me **break less, verify stronger, and recover better.** Overall efficiency increased by 25-35%."*
+> 
+> **Core differences:**
+> - **Less guessing:** Forces searching anchors, reading ranges, and understanding flows before patching. (Normally, AI jumps in too fast and misses edge cases).
+> - **Strict verification:** Always runs verification commands + static searches instead of just assuming "the code looks fine".
+> - **Clear Source/Dist boundaries:** Edits `src` and rebuilds `dist`, never patching generated files directly.
+> - **Safe in dirty repos:** Prevents accidental reverts of human edits, strictly checks `git status`.
+> - **Prevents over-refactoring:** Contains changes to the specific module instead of unnecessarily rewriting the entire system.
+
 ---
 
 ## 💰 Real token savings

@@ -214,6 +214,19 @@ Root cause: $acc.Username rỗng → ConvertMsa crash ✅
 | **Kết quả** | "encoding issue" | Root cause + 3 bugs identified |
 | **Encoding** | Không handle UTF-8 BOM | BOM preserved correctly |
 
+### 🗣️ Đánh giá từ chính AI (GPT-5.5 class)
+
+Sau một phiên làm việc refactor và port tính năng phức tạp với hàng chục file thay đổi, chính một AI agent cấp cao đã đưa ra nhận xét về sự khác biệt khi có Update Helper:
+
+> *"Update Helper không làm mình **'code nhanh hơn'** nhiều, nhưng làm **ít phá hơn, verify chắc hơn, hồi phục tốt hơn.** Tăng khoảng 25-35% hiệu quả tổng thể."*
+> 
+> **Sự khác biệt cốt lõi:**
+> - **Ít đoán mò:** Bắt buộc search anchor, đọc range, hiểu flow trước khi patch. (Bình thường AI dễ nhảy vào sửa mù và miss các case như duplicate DOM).
+> - **Verify nghiêm ngặt:** Luôn chạy command verify + static search thay vì chỉ thấy "code nhìn ổn".
+> - **Source/dist rạch ròi:** Sửa đúng file `src`, rebuild `dist`, tuyệt đối không patch file generated.
+> - **An toàn với dirty repo:** Nhắc nhở không revert nhầm file của người khác, luôn kiểm tra `git status`.
+> - **Chống over-refactor:** Chỉ khoanh vùng module cần thiết, không lôi cả hệ thống ra sửa.
+
 ---
 
 ## 💰 Tiết kiệm token thực tế
