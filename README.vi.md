@@ -39,7 +39,7 @@ AI agent viết code mới thì nhanh. Nhưng tìm và sửa code có sẵn lạ
 
 ---
 
-## 🔄 Nó đổi cách agent làm việc thế nào?
+## 🔄 Agent làm việc khác thế nào?
 
 ```
 User: "fix this" / "xóa UI cũ" / "patch vừa rồi làm hỏng rồi"
@@ -57,68 +57,20 @@ Update Helper
 Kết quả: đúng file, đúng luồng, build pass, invariant sạch, còn đường rollback
 ```
 
-Điểm khác biệt là agent không cố "nhìn toàn cảnh" ngay từ đầu. Nó tìm một anchor đủ tốt, đọc đúng vùng liên quan, rồi mở rộng chỉ khi blast radius thật sự lớn.
+**Lite** — task nhỏ, rõ ràng, 1 file, không có encoding risk hay generated/source nhầm lẫn.
 
-**Lite** — khi task nhỏ, rõ ràng, 1 file, không có encoding risk hay generated/source nhầm lẫn.
+**Full Protocol** — file lớn, nhiều module, encoding risk, refactor, spec có thể stale, hoặc agent/người khác đã sửa repo.
 
-**Full Protocol** — khi file lớn, nhiều module liên quan, encoding risk, refactor, mô tả có thể stale, hoặc agent/người khác đã sửa repo.
-
----
-
-## 🧭 Agent sẽ làm gì khác?
-
-| Case | Agent thường làm | Với Update Helper |
+| Tình huống | Agent thường làm | Với Update Helper |
 |---|---|---|
 | Bug UI | Sửa phần đang nhìn thấy | Trace render → handler → state → config trước khi patch |
-| Bug provider/API | Đổi model, đổi key | Tách request gửi đi / response nhận về / xử lý sau response |
-| File generated | Sửa file đang chạy | Tìm source-of-truth (nguồn thật), patch source, rebuild output |
-| File lớn | Đọc quá nhiều | Search anchor, đọc bounded range (vùng nhỏ quanh điểm nghi vấn) |
-| File có tiếng Việt/CJK | Replace bằng tool tiện tay | Check encoding/BOM, dùng anchor ổn định, preserve encoding |
+| Bug provider/API | Đổi model, đổi key | Tách request / response / xử lý sau → tìm đúng chỗ fail |
+| File generated | Sửa file đang chạy | Tìm source-of-truth, patch source, rebuild output |
+| File lớn | Đọc cả file | Search anchor → đọc bounded range |
+| File có tiếng Việt/CJK | Replace bằng tool tiện tay | Detect BOM trước khi ghi, verify sau khi ghi |
 | Patch hỏng | Chồng thêm workaround | Restore `.bak2`, đọc lại range, patch nhỏ hơn |
-
----
-
-## ⚡ Cài đặt
-
-### Antigravity / OpenClaw (thư mục skills)
-
-Clone repo:
-
-```bash
-git clone https://github.com/pitroytech/update-helper-skills.git
-```
-
-Copy vào thư mục skills của agent:
-
-```bash
-xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
-```
-
-### Claude Code / Cursor / Cline (file `.skill`)
-
-1. Download [`update-helper.skill`](update-helper.skill) từ repo này.
-2. Import vào skill manager của agent.
-
-### Thủ công (bất kỳ agent nào)
-
-Copy nội dung [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) vào system prompt hoặc `AGENTS.md` của project.
-
-Khi skill được nạp đúng cách, agent sẽ tự kích hoạt protocol khi gặp trigger: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
-
----
-
-## 📊 So sánh
-
-| Không có Update Helper | Có Update Helper |
-|---|---|
-| Đọc cả file lớn để tìm 1 chỗ sửa | Tìm anchor → đọc bounded range |
-| Xóa UI, nhưng code xử lý sự kiện vẫn còn | Checklist đầy đủ: render + CSS + binding + config + dist |
-| Sửa file output vì đó là file đang chạy | Phân loại source-of-truth → patch source → rebuild |
-| Thấy lỗi → đổi model, đổi key | Tách tầng request/response/xử lý → tìm đúng chỗ fail |
-| Encoding bị hỏng, không biết tại sao | Detect BOM trước khi ghi, verify sau khi ghi |
-| Agent mới vào → đọc lại toàn bộ từ đầu | Đọc map/backup/KI hiện có → làm tiếp ngay |
-| Áp spec cũ vào code đã refactor | So sánh spec vs thực tế, hỏi trước khi merge |
-| Backup lúc thì quên, lúc thì để đầy rác | `.bak2` mỗi lần ghi + session backup + cleanup rõ ràng |
+| Agent mới vào | Đọc lại toàn bộ từ đầu | Đọc map/backup/KI hiện có → làm tiếp ngay |
+| Spec cũ + code mới | Áp spec cũ vào code đã refactor | So sánh spec vs thực tế, hỏi trước khi merge |
 
 ---
 

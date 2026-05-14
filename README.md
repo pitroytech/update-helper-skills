@@ -57,68 +57,20 @@ Update Helper
 Result: right file, right flow, build passes, invariants clean, rollback path preserved
 ```
 
-The key difference: the agent doesn't try to "see everything" upfront. It finds a good anchor, reads only the relevant range, and expands only when the blast radius is genuinely large.
+**Lite** — small, clear tasks: 1 file, no encoding risk, no generated/source confusion.
 
-**Lite** — for small, clear tasks: 1 file, no encoding risk, no generated/source confusion.
-
-**Full Protocol** — for large files, multi-module changes, encoding risk, refactors, potentially stale specs, or repos touched by other agents/humans.
-
----
-
-## 🧭 What Changes for the Agent?
+**Full Protocol** — large files, multi-module changes, encoding risk, refactors, potentially stale specs, or repos touched by other agents/humans.
 
 | Case | Agent without skill | With Update Helper |
 |---|---|---|
 | UI bug | Fix what's visible | Trace render → handler → state → config before patching |
-| Provider/API bug | Swap model, swap key | Separate request sent / response received / post-processing |
+| Provider/API bug | Swap model, swap key | Separate request / response / post-processing → find real failure |
 | Generated file | Edit the running file | Find source-of-truth, patch source, rebuild output |
-| Large file | Read too much | Search anchor, read bounded range (small zone around target) |
-| Vietnamese/CJK file | Replace with convenient tool | Check encoding/BOM, use stable anchors, preserve encoding |
+| Large file | Read entire file | Search anchor → read bounded range |
+| Vietnamese/CJK file | Replace with convenient tool | Detect BOM before writing, verify after writing |
 | Broken patch | Stack another workaround | Restore `.bak2`, re-read range, patch smaller |
-
----
-
-## ⚡ Installation
-
-### Antigravity / OpenClaw (skills folder)
-
-Clone the repo:
-
-```bash
-git clone https://github.com/pitroytech/update-helper-skills.git
-```
-
-Copy to your agent's skills directory:
-
-```bash
-xcopy /E /I update-helper-skills\skills\update-helper %USERPROFILE%\.gemini\antigravity\skills\update-helper
-```
-
-### Claude Code / Cursor / Cline (`.skill` file)
-
-1. Download [`update-helper.skill`](update-helper.skill) from this repo.
-2. Import into your agent's skill manager.
-
-### Manual (any agent)
-
-Copy the contents of [`skills/update-helper/SKILL.md`](skills/update-helper/SKILL.md) into your system prompt or `AGENTS.md`.
-
-Once loaded, the agent automatically activates the protocol on triggers: `fix this`, `remove old UI`, `refactor`, `port this`, `last patch broke it`.
-
----
-
-## 📊 Comparison
-
-| Without Update Helper | With Update Helper |
-|---|---|
-| Read entire large file to find 1 fix | Find anchor → read bounded range |
-| Delete UI, but event handler code remains | Full checklist: render + CSS + binding + config + dist |
-| Edit output file because it's the running one | Classify source-of-truth → patch source → rebuild |
-| See error → swap model, swap key | Separate request/response/processing → find real failure |
-| Encoding broken, no idea why | Detect BOM before writing, verify after writing |
-| New agent → re-read everything from scratch | Read existing map/backup/KI → continue immediately |
-| Apply stale spec to refactored code | Compare spec vs actual, ask before merge |
-| Backups sometimes forgotten, sometimes cluttering | `.bak2` per write + session backup + clear cleanup rules |
+| New agent joins | Re-read everything from scratch | Read existing map/backup/KI → continue immediately |
+| Stale spec + new code | Apply stale spec to refactored code | Compare spec vs actual, ask before merge |
 
 ---
 
