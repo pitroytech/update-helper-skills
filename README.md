@@ -1,9 +1,9 @@
-<p align="right">
+﻿<p align="right">
   <b>🇺🇸 English</b> &nbsp;|&nbsp;
   <a href="README.vi.md">🇻🇳 Tiếng Việt</a>
 </p>
 
-# 🛠️ Update Helper v5 — by PitroyTech
+# 🦾 Update Helper v5 — by PitroyTech
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.0-blue.svg)](SKILL.md)
@@ -229,7 +229,7 @@ Strong models still benefit — not because they don't know code, but because th
 
 ---
 
-## ✅ Proven on
+## 🧪 Proven on
 
 * 15,000+ line userscript: provider routing, scheduler, model pool, floating settings UI
 * Translation tool using Gemini, Groq, OpenRouter, SambaNova
@@ -261,7 +261,7 @@ This README is for humans. `SKILL.md` is what the agent reads when doing real wo
 
 ---
 
-## 🔖 Version history
+## 🕰️ Version history
 
 | Version | Changes |
 |---|---|
@@ -273,7 +273,7 @@ This README is for humans. `SKILL.md` is what the agent reads when doing real wo
 
 ---
 
-## 📄 License
+## ⚖️ License
 
 MIT License. **Concept, design, and content © PitroyTech.**
 

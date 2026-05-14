@@ -1,9 +1,9 @@
-<p align="right">
+﻿<p align="right">
   <a href="README.md">🇺🇸 English</a> &nbsp;|&nbsp;
   <b>🇻🇳 Tiếng Việt</b>
 </p>
 
-# 🛠️ Update Helper v5 — by PitroyTech
+# 🦾 Update Helper v5 — by PitroyTech
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.0-blue.svg)](SKILL.md)
@@ -15,7 +15,7 @@
 
 ---
 
-## 🤔 Vấn đề là gì?
+## 🚨 Vấn đề là gì?
 
 AI agent viết code mới rất nhanh. Nhưng cập nhật code có sẵn lại khó hơn nhiều.
 
@@ -77,7 +77,7 @@ Với Update Helper, agent làm việc hoàn toàn khác:
 
 ---
 
-## 🔄 Agent làm việc khác thế nào?
+## 🧬 Agent làm việc khác thế nào?
 
 ```
 User: "fix this" / "xóa UI cũ" / "patch vừa rồi làm hỏng rồi"
@@ -261,7 +261,7 @@ README này là bản giới thiệu cho con người. `SKILL.md` là bản agen
 
 ---
 
-## 🔖 Lịch sử phiên bản
+## 🕰️ Lịch sử phiên bản
 
 | Phiên bản | Thay đổi |
 |---|---|
