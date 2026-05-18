@@ -270,9 +270,6 @@ After a session combining complex refactor and building new functionality from s
 > - **Safe in dirty repos:** Prevents accidental reverts of human edits, strictly checks `git status`.
 > - **Prevents over-refactoring:** Contains changes to the specific module instead of unnecessarily rewriting the entire system.
 
-### 💰 Token savings — real measurement
-
-<img src="images/token-savings.png" width="33%" alt="Token savings estimate with Update Helper v5">
 
 ### 🗣️ Real evaluation from a massive session (Codex 5.5 High)
 

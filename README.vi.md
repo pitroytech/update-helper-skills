@@ -270,9 +270,6 @@ Sau một phiên kết hợp refactor phức tạp và build tính năng mới t
 > - **An toàn với dirty repo:** Nhắc nhở không revert nhầm file của người khác, luôn kiểm tra `git status`.
 > - **Chống over-refactor:** Chỉ khoanh vùng module cần thiết, không lôi cả hệ thống ra sửa.
 
-### 💰 Tiết kiệm token — đo lường thực tế
-
-<img src="images/token-savings.png" width="33%" alt="Ước tính tiết kiệm token với Update Helper v5">
 
 ### 🗣️ Đánh giá thực tế từ phiên làm việc lớn (Codex 5.5 High)
 
