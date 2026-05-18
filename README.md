@@ -257,7 +257,7 @@ Root cause: $acc.Username empty → ConvertMsa crash ✅
 
 ### 🗣️ The AI's Own Review (GPT-5.5 class)
 
-After a complex refactoring and porting session spanning dozens of files, an advanced AI agent gave this exact feedback on working with Update Helper:
+After a session combining complex refactor and building new functionality from scratch across dozens of files, an advanced AI agent gave this exact feedback on working with Update Helper:
 
 <img src="images/ai-review-proof.png" width="100%" alt="Real review from AI Agent about Update Helper">
 
@@ -270,15 +270,13 @@ After a complex refactoring and porting session spanning dozens of files, an adv
 > - **Safe in dirty repos:** Prevents accidental reverts of human edits, strictly checks `git status`.
 > - **Prevents over-refactoring:** Contains changes to the specific module instead of unnecessarily rewriting the entire system.
 
----
-
-## 💰 Real token savings
+### 💰 Token savings — real measurement
 
 <img src="images/token-savings.png" width="33%" alt="Token savings estimate with Update Helper v5">
 
 ### 🗣️ Real evaluation from a massive session (Codex 5.5 High)
 
-During a task to **completely rebuild software from a legacy codebase (over 20,000 lines of code)**, which required deep tracing, port parity, doc updates, and multi-round verification. The AI (Codex 5.5 High) evaluated the actual impact of following the Update Helper protocol:
+After updating **a single massive file (20,000+ lines)** — deep tracing, full module mapping, doc sync, and multi-round verification — the AI (Codex 5.5 High) evaluated the actual impact of following the Update Helper protocol:
 
 <img src="images/codex-55-high-review.png" width="100%" alt="Review from Codex 5.5 High">
 
