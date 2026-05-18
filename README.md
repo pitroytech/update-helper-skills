@@ -276,6 +276,23 @@ After a complex refactoring and porting session spanning dozens of files, an adv
 
 <img src="images/token-savings.png" width="33%" alt="Token savings estimate with Update Helper v5">
 
+### 🗣️ Real evaluation from a massive session (Codex 5.5 High)
+
+During a task to **completely rebuild software from a legacy codebase (over 20,000 lines of code)**, which required deep tracing, port parity, doc updates, and multi-round verification. The AI (Codex 5.5 High) evaluated the actual impact of following the Update Helper protocol:
+
+<img src="images/codex-55-high-review.png" width="100%" alt="Review from Codex 5.5 High">
+
+> **Actual estimates for the recent massive session:**
+> - **Productivity increase:** around 35-50%
+> - **Wasted token reduction:** around 25-40%
+> - **Mis-patch / file corruption risk reduction:** around 50-70%
+> 
+> *"Main reason: `update-helper` forces the cycle of `search -> read small range -> map v10/v11 -> narrow patch -> verify`. With a large codebase like AIDICH, this avoids mindlessly reading entire 3,000-5,000 line files, prevents 'flow guessing', and reduces the number of re-edits.*
+> 
+> *It didn't drastically reduce the absolute total tokens in this session, because your request required deep trace + port parity + docs update + multiple verification rounds. Meaning tokens are still high, but tokens are far more 'useful'. Without `update-helper`, this session would highly likely cost around 1.3x-1.6x more time/context, and errors like patching the wrong module or missing dist/docs would be significantly higher."*
+
+### 📋 Savings by task type
+
 | Task type | Without protocol | With Update Helper |
 |---|---|---|
 | **500KB+ JS file** | Easily 100k–180k tokens | Anchor + bounded range → ~15k–30k tokens |
